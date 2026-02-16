@@ -27,7 +27,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem("bh-sidebar") === "collapsed",
+    () => localStorage.getItem("bh-sidebar") !== "expanded",
   );
   const { projectId } = useParams();
   const basePath = projectId ? `/projects/${projectId}` : "/";
@@ -41,24 +41,26 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "h-screen sticky top-0 bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-200",
+        "h-screen sticky top-0 bg-gray-50 dark:bg-gray-950 border-r border-gray-200 dark:border-gray-700/30 flex flex-col transition-all duration-200",
         collapsed ? "w-16" : "w-60",
       )}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center gap-2.5 p-4 border-b border-gray-200 dark:border-gray-700/30">
         <img
           src="/foundrylogo.png"
           alt="Foundry"
-          className="w-7 h-7 shrink-0 rounded"
+          className="w-8 h-8 shrink-0 rounded-lg"
         />
         {!collapsed && (
-          <span className="font-bold text-lg truncate">Foundry</span>
+          <span className="font-bold text-lg tracking-tight truncate">
+            Foundry
+          </span>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-2 overflow-y-auto">
+      <nav className="flex-1 py-3 overflow-y-auto">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -66,10 +68,10 @@ export function Sidebar() {
             end={item.end}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl text-sm transition-all duration-150",
                 isActive
-                  ? "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-medium"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800",
+                  ? "bg-amber-500/10 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200",
               )
             }
           >
@@ -82,7 +84,7 @@ export function Sidebar() {
       {/* Collapse toggle */}
       <button
         onClick={toggleCollapse}
-        className="p-3 border-t border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+        className="p-3 border-t border-gray-200 dark:border-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors text-gray-400"
       >
         {collapsed ? (
           <ChevronRight className="w-5 h-5 mx-auto" />

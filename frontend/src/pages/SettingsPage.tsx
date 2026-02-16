@@ -299,7 +299,7 @@ export function SettingsPage() {
                 type="text"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               />
             </div>
             <div>
@@ -315,7 +315,7 @@ export function SettingsPage() {
                 onChange={(e) => setEditDesc(e.target.value)}
                 rows={3}
                 placeholder="A brief description of the project..."
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
               />
             </div>
             <div className="flex justify-end">
@@ -348,7 +348,7 @@ export function SettingsPage() {
           {project.members.map((member) => (
             <Card key={member.id} className="flex items-center gap-3">
               {/* Avatar */}
-              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-semibold shrink-0">
+              <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-500/10 text-amber-500 text-sm font-semibold shrink-0">
                 {member.display_name
                   .split(" ")
                   .map((w) => w[0])
@@ -397,7 +397,7 @@ export function SettingsPage() {
             </div>
             <button
               onClick={toggleTheme}
-              className="relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-gray-200 dark:bg-blue-600"
+              className="relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-gray-200 dark:bg-amber-500"
             >
               <span
                 className={`inline-flex items-center justify-center h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
@@ -405,7 +405,7 @@ export function SettingsPage() {
                 }`}
               >
                 {theme === "dark" ? (
-                  <Moon className="w-3.5 h-3.5 text-blue-600" />
+                  <Moon className="w-3.5 h-3.5 text-amber-600" />
                 ) : (
                   <Sun className="w-3.5 h-3.5 text-amber-500" />
                 )}
@@ -486,7 +486,7 @@ export function SettingsPage() {
               <select
                 value={currentModel}
                 onChange={(e) => setModel(e.target.value)}
-                className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               >
                 {models.map((m) => (
                   <option key={m.id} value={m.id}>
@@ -633,7 +633,7 @@ export function SettingsPage() {
               onChange={(e) => setMemberEmail(e.target.value)}
               placeholder="user@example.com"
               autoFocus
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
             />
           </div>
           <div>
@@ -647,7 +647,7 @@ export function SettingsPage() {
               id="memberRole"
               value={memberRole}
               onChange={(e) => setMemberRole(e.target.value as ProjectRole)}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>

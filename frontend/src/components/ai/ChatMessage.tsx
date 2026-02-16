@@ -54,8 +54,8 @@ export function ChatMessageBubble({ message }: { message: ChatMessageType }) {
       <div
         className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+            ? "bg-amber-500 text-white"
+            : "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
         }`}
       >
         {isUser ? (
@@ -67,9 +67,9 @@ export function ChatMessageBubble({ message }: { message: ChatMessageType }) {
 
       {/* Bubble */}
       <div
-        className={`max-w-[85%] rounded-xl px-3 py-2 ${
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
           isUser
-            ? "bg-blue-600 text-white"
+            ? "bg-amber-500 text-white"
             : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         }`}
       >

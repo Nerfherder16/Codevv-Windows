@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Warm dark palette — purple-tinted grays inspired by modern fintech dashboards */
+@theme {
+  --color-gray-950: #0b0c14;
+  --color-gray-900: #11121d;
+  --color-gray-800: #191a28;
+  --color-gray-700: #232536;
+  --color-gray-600: #3a3c52;
+  --color-gray-500: #626480;
+  --color-gray-400: #8f91ab;
+  --color-gray-300: #b5b7cc;
+  --color-gray-200: #d4d6e4;
+  --color-gray-100: #ecedf5;
+  --color-gray-50: #f5f6fb;
+}
+
 :root {
   --sidebar-width: 240px;
   --sidebar-collapsed: 64px;
@@ -17,11 +32,22 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #4b5563;
+  background: #3a3c52;
   border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #525470;
 }
 
 /* tldraw overrides */
 .tl-container {
   border-radius: 8px;
+}
+
+/* Focus ring color override for dark mode — warm amber */
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #f59e0b !important;
+  --tw-ring-color: rgb(245 158 11 / 0.2) !important;
 }

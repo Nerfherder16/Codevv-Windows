@@ -17,19 +17,48 @@ interface QuickLinkProps {
   onClick: () => void;
 }
 
-function QuickLink({ icon, label, count, onClick }: QuickLinkProps) {
+interface QuickLinkColor {
+  bg: string;
+  icon: string;
+  count: string;
+}
+
+const LINK_COLORS: Record<string, QuickLinkColor> = {
+  emerald: {
+    bg: "bg-emerald-50 dark:bg-emerald-900/15",
+    icon: "text-emerald-600 dark:text-emerald-400",
+    count: "text-emerald-700 dark:text-emerald-300",
+  },
+  amber: {
+    bg: "bg-amber-50 dark:bg-amber-900/15",
+    icon: "text-amber-600 dark:text-amber-400",
+    count: "text-amber-700 dark:text-amber-300",
+  },
+  violet: {
+    bg: "bg-violet-50 dark:bg-violet-900/15",
+    icon: "text-violet-600 dark:text-violet-400",
+    count: "text-violet-700 dark:text-violet-300",
+  },
+};
+
+function QuickLink({
+  icon,
+  label,
+  count,
+  onClick,
+  color = "emerald",
+}: QuickLinkProps & { color?: string }) {
+  const c = LINK_COLORS[color] || LINK_COLORS.emerald;
   return (
-    <Card hover onClick={onClick} className="flex items-center gap-4">
-      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+    <Card hover onClick={onClick} className={`flex items-center gap-4 ${c.bg}`}>
+      <div
+        className={`flex items-center justify-center w-12 h-12 rounded-xl ${c.icon}`}
+      >
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
-          {label}
-        </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {count} {count === 1 ? "item" : "items"}
-        </p>
+        <p className={`text-2xl font-bold ${c.count}`}>{count}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
       </div>
     </Card>
   );
@@ -114,23 +143,25 @@ export function ProjectOverviewPage() {
       {/* Quick links grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <QuickLink
-          icon={<Pencil className="w-5 h-5" />}
+          icon={<Pencil className="w-6 h-6" />}
           label="Canvases"
           count={canvases.length}
+          color="emerald"
           onClick={() => navigate(`/projects/${projectId}/canvases`)}
         />
         <QuickLink
-          icon={<Lightbulb className="w-5 h-5" />}
+          icon={<Lightbulb className="w-6 h-6" />}
           label="Ideas"
           count={ideas.length}
+          color="amber"
           onClick={() => navigate(`/projects/${projectId}/ideas`)}
         />
         <QuickLink
-          icon={<Users className="w-5 h-5" />}
+          icon={<Users className="w-6 h-6" />}
           label="Members"
           count={project.members.length}
+          color="violet"
           onClick={() => {
-            /* scroll to members section */
             document
               .getElementById("members-section")
               ?.scrollIntoView({ behavior: "smooth" });
@@ -152,7 +183,7 @@ export function ProjectOverviewPage() {
             {project.members.map((member) => (
               <Card key={member.id} className="flex items-center gap-3">
                 {/* Avatar placeholder */}
-                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-semibold shrink-0">
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-500/10 text-amber-500 text-sm font-semibold shrink-0">
                   {member.display_name
                     .split(" ")
                     .map((w) => w[0])

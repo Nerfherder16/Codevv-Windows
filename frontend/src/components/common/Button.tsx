@@ -9,9 +9,10 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+  primary:
+    "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 shadow-sm shadow-amber-500/20",
   secondary:
-    "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600",
+    "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700",
   danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
   ghost:
     "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",

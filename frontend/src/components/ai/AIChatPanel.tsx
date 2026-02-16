@@ -152,12 +152,12 @@ export function AIChatPanel() {
 
       {/* Panel */}
       <div
-        className={`fixed right-0 top-0 h-full w-[400px] z-40 flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-xl transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-full w-[400px] z-40 flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700/30 shadow-2xl dark:shadow-black/40 transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4">
+        <div className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-700/30 flex items-center justify-between px-4">
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               AI Assistant
@@ -166,7 +166,7 @@ export function AIChatPanel() {
             <div className="relative">
               <button
                 onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               >
                 <span className="truncate max-w-[120px]">
                   {selectedModel?.name || currentModel}
@@ -174,7 +174,7 @@ export function AIChatPanel() {
                 <ChevronDown className="w-3 h-3 shrink-0" />
               </button>
               {modelDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-60 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+                <div className="absolute top-full left-0 mt-1 w-60 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-lg z-50 overflow-hidden">
                   {models.map((m) => (
                     <button
                       key={m.id}
@@ -182,9 +182,9 @@ export function AIChatPanel() {
                         setModel(m.id);
                         setModelDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
                         m.id === currentModel
-                          ? "bg-blue-50 dark:bg-blue-900/20"
+                          ? "bg-amber-50 dark:bg-amber-900/20"
                           : ""
                       }`}
                     >
@@ -250,11 +250,11 @@ export function AIChatPanel() {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-gray-200 dark:border-gray-800 p-3">
+        <div className="shrink-0 border-t border-gray-200 dark:border-gray-700/30 p-3">
           {/* Context indicator */}
           {currentContext?.page && (
             <div className="mb-2 flex items-center gap-1.5">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 font-medium">
                 {currentContext.page}
               </span>
             </div>
@@ -268,7 +268,7 @@ export function AIChatPanel() {
               onKeyDown={handleKeyDown}
               placeholder="Ask about your project..."
               rows={1}
-              className="flex-1 resize-none rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="flex-1 resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               style={{ maxHeight: "120px" }}
             />
             {isStreaming ? (
@@ -283,7 +283,7 @@ export function AIChatPanel() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="shrink-0 p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="shrink-0 p-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 title="Send (Enter)"
               >
                 <Send className="w-4 h-4" />

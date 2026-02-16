@@ -339,7 +339,7 @@ export function IdeaDetailPage() {
               <Card key={comment.id} className="py-3">
                 <div className="flex items-start gap-3">
                   {/* User avatar placeholder */}
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold shrink-0">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 text-xs font-semibold shrink-0">
                     {comment.user_id.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -368,7 +368,7 @@ export function IdeaDetailPage() {
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             placeholder="Add a comment..."
-            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            className="flex-1 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
           <Button type="submit" loading={submittingComment} size="md">
             <Send className="w-4 h-4" />
