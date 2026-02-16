@@ -152,12 +152,12 @@ export function AIChatPanel() {
 
       {/* Panel */}
       <div
-        className={`fixed right-0 top-0 h-full w-[400px] z-40 flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700/30 shadow-2xl dark:shadow-black/40 transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-full w-[400px] z-40 flex flex-col bg-white dark:bg-gray-950/95 dark:backdrop-blur-xl border-l border-gray-200 dark:border-white/[0.06] shadow-2xl dark:shadow-black/40 transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="shrink-0 h-14 border-b border-gray-200 dark:border-gray-700/30 flex items-center justify-between px-4">
+        <div className="shrink-0 h-14 border-b border-gray-200 dark:border-white/[0.06] flex items-center justify-between px-4">
           <div className="flex items-center gap-2 min-w-0">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               AI Assistant
@@ -166,7 +166,7 @@ export function AIChatPanel() {
             <div className="relative">
               <button
                 onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-white/[0.06] text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/[0.1] transition-colors"
               >
                 <span className="truncate max-w-[120px]">
                   {selectedModel?.name || currentModel}
@@ -174,7 +174,7 @@ export function AIChatPanel() {
                 <ChevronDown className="w-3 h-3 shrink-0" />
               </button>
               {modelDropdownOpen && (
-                <div className="absolute top-full left-0 mt-1 w-60 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-lg z-50 overflow-hidden">
+                <div className="absolute top-full left-0 mt-1 w-60 bg-white dark:bg-gray-900/95 dark:backdrop-blur-xl border border-gray-200 dark:border-white/[0.08] rounded-xl shadow-lg dark:shadow-black/40 z-50 overflow-hidden">
                   {models.map((m) => (
                     <button
                       key={m.id}
@@ -182,9 +182,9 @@ export function AIChatPanel() {
                         setModel(m.id);
                         setModelDropdownOpen(false);
                       }}
-                      className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors ${
                         m.id === currentModel
-                          ? "bg-amber-50 dark:bg-amber-900/20"
+                          ? "bg-amber-50 dark:bg-amber-500/10"
                           : ""
                       }`}
                     >
@@ -203,14 +203,14 @@ export function AIChatPanel() {
           <div className="flex items-center gap-1">
             <button
               onClick={clearMessages}
-              className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               title="Clear chat"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button
               onClick={close}
-              className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               title="Close"
             >
               <X className="w-4 h-4" />
@@ -222,7 +222,7 @@ export function AIChatPanel() {
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 dark:text-gray-500">
-              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-white/[0.05] flex items-center justify-center mb-3">
                 <svg
                   className="w-6 h-6"
                   viewBox="0 0 24 24"
@@ -250,7 +250,7 @@ export function AIChatPanel() {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-gray-200 dark:border-gray-700/30 p-3">
+        <div className="shrink-0 border-t border-gray-200 dark:border-white/[0.06] p-3">
           {/* Context indicator */}
           {currentContext?.page && (
             <div className="mb-2 flex items-center gap-1.5">
@@ -268,7 +268,7 @@ export function AIChatPanel() {
               onKeyDown={handleKeyDown}
               placeholder="Ask about your project..."
               rows={1}
-              className="flex-1 resize-none rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              className="flex-1 resize-none rounded-xl border border-gray-300 dark:border-white/[0.08] bg-white dark:bg-white/[0.04] px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
               style={{ maxHeight: "120px" }}
             />
             {isStreaming ? (
@@ -283,7 +283,7 @@ export function AIChatPanel() {
               <button
                 onClick={handleSend}
                 disabled={!input.trim()}
-                className="shrink-0 p-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="shrink-0 p-2 rounded-xl btn-glow text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 title="Send (Enter)"
               >
                 <Send className="w-4 h-4" />

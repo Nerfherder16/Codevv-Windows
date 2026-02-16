@@ -276,7 +276,7 @@ export function IdeasPage() {
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                 <div className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                     <ThumbsUp className="w-3.5 h-3.5" />
@@ -294,7 +294,7 @@ export function IdeasPage() {
 
               {/* Expanded detail */}
               {expandedId === idea.id && (
-                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                   <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                     {idea.description}
                   </p>

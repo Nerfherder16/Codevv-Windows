@@ -407,7 +407,7 @@ export function ScaffoldPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                 {job.status === "review" && (
                   <>
                     <Button
@@ -495,7 +495,7 @@ export function ScaffoldPage() {
                   <button
                     type="button"
                     onClick={selectAllComponents}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-xs text-amber-600 dark:text-amber-400 hover:underline"
                   >
                     {selectedComponentIds.size === components.length
                       ? "Deselect All"

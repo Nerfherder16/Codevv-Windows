@@ -28,11 +28,11 @@ export function Modal({ open, onClose, title, children, className }: Props) {
       ref={ref}
       onClose={onClose}
       className={cn(
-        "backdrop:bg-black/60 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/50 shadow-2xl p-0 max-w-lg w-full",
+        "backdrop:bg-black/60 backdrop:backdrop-blur-sm rounded-2xl bg-white dark:bg-gray-900/95 dark:backdrop-blur-xl border border-gray-200 dark:border-white/[0.08] shadow-2xl dark:shadow-black/40 p-0 max-w-lg w-full",
         className,
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700/50">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/[0.06]">
         <h2 className="text-lg font-semibold">{title}</h2>
         <button
           onClick={onClose}

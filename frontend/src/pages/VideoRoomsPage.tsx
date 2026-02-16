@@ -223,7 +223,7 @@ export function VideoRoomsPage() {
           {rooms.map((room) => (
             <Card key={room.id} className="flex flex-col">
               <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 shrink-0">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 shrink-0">
                   <Video className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -251,7 +251,7 @@ export function VideoRoomsPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                 {room.is_active && (
                   <Button
                     size="sm"

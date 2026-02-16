@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 
 export function LoadingSpinner({ className }: { className?: string }) {
   return (
-    <Loader2 className={cn("w-6 h-6 animate-spin text-blue-500", className)} />
+    <Loader2 className={cn("w-6 h-6 animate-spin text-amber-500", className)} />
   );
 }
 

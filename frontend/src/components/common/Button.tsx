@@ -9,13 +9,13 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants = {
-  primary:
-    "bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 shadow-sm shadow-amber-500/20",
+  primary: "btn-glow text-white font-semibold",
   secondary:
-    "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700",
-  danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+    "bg-white/80 dark:bg-white/[0.05] text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-white/[0.08] border border-gray-200/80 dark:border-white/[0.08] backdrop-blur-sm",
+  danger:
+    "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-lg shadow-red-500/20",
   ghost:
-    "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800",
+    "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-gray-200",
 };
 
 const sizes = {
@@ -36,7 +36,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
         variants[variant],
         sizes[size],
         className,

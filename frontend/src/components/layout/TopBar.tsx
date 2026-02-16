@@ -10,42 +10,56 @@ export function TopBar() {
   const { toggle: toggleChat, isOpen: chatOpen } = useAIChat();
 
   return (
-    <header className="h-14 border-b border-gray-200 dark:border-gray-700/30 flex items-center justify-between px-6 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm">
+    <header className="h-14 border-b border-gray-200/80 dark:border-white/[0.04] flex items-center justify-between px-6 bg-white/60 dark:bg-transparent backdrop-blur-sm">
       <div />
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
+        {/* AI toggle */}
         <button
           onClick={toggleChat}
-          className={`p-2 rounded-xl transition-all duration-150 ${
+          className={`p-2 rounded-xl transition-all duration-200 ${
             chatOpen
-              ? "bg-amber-500/10 text-amber-500"
-              : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-600 dark:hover:text-gray-200"
+              ? "bg-amber-500/15 text-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+              : "text-gray-400 dark:text-gray-500 hover:bg-white/[0.05] hover:text-gray-200"
           }`}
           title="AI Assistant"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-[18px] h-[18px]" />
         </button>
+
+        {/* Theme toggle */}
         <button
           onClick={toggle}
-          className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-600 dark:hover:text-gray-200 transition-all duration-150"
+          className="p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:text-gray-600 dark:hover:text-gray-200 transition-all duration-200"
           title="Toggle theme"
         >
           {theme === "dark" ? (
-            <Sun className="w-4 h-4" />
+            <Sun className="w-[18px] h-[18px]" />
           ) : (
-            <Moon className="w-4 h-4" />
+            <Moon className="w-[18px] h-[18px]" />
           )}
         </button>
+
+        {/* Divider */}
+        {user && (
+          <div className="w-px h-6 bg-gray-200 dark:bg-white/[0.06] mx-1" />
+        )}
+
         {user && (
           <>
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 ml-1">
-              <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-xs font-semibold">
+            {/* User avatar */}
+            <div className="flex items-center gap-2.5 text-sm ml-1">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-amber-500/20">
                 {user.display_name?.charAt(0)?.toUpperCase() || "U"}
               </div>
-              <span className="hidden sm:inline">{user.display_name}</span>
+              <span className="hidden sm:inline text-gray-600 dark:text-gray-400 font-medium">
+                {user.display_name}
+              </span>
             </div>
+
+            {/* Logout */}
             <button
               onClick={logout}
-              className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-600 dark:hover:text-gray-200 transition-all duration-150"
+              className="p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/[0.05] hover:text-gray-600 dark:hover:text-red-400 transition-all duration-200"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />

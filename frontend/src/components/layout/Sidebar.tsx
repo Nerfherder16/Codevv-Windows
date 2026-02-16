@@ -41,26 +41,28 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "h-screen sticky top-0 bg-gray-50 dark:bg-gray-950 border-r border-gray-200 dark:border-gray-700/30 flex flex-col transition-all duration-200",
-        collapsed ? "w-16" : "w-60",
+        "h-screen sticky top-0 flex flex-col transition-all duration-300 ease-out",
+        "bg-white/60 dark:bg-white/[0.02] backdrop-blur-xl",
+        "border-r border-gray-200/80 dark:border-white/[0.04]",
+        collapsed ? "w-[68px]" : "w-60",
       )}
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 p-4 border-b border-gray-200 dark:border-gray-700/30">
+      <div className="flex items-center gap-2.5 p-4 border-b border-gray-200/80 dark:border-white/[0.04]">
         <img
           src="/foundrylogo.png"
           alt="Foundry"
           className="w-8 h-8 shrink-0 rounded-lg"
         />
         {!collapsed && (
-          <span className="font-bold text-lg tracking-tight truncate">
+          <span className="font-bold text-lg tracking-tight truncate gradient-text">
             Foundry
           </span>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-3 overflow-y-auto">
+      <nav className="flex-1 py-4 px-2 overflow-y-auto space-y-1">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
@@ -68,15 +70,28 @@ export function Sidebar() {
             end={item.end}
             className={({ isActive }) =>
               cn(
-                "flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl text-sm transition-all duration-150",
+                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                 isActive
-                  ? "bg-amber-500/10 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200",
+                  ? "nav-active text-amber-500 dark:text-amber-400 font-medium"
+                  : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.04]",
               )
             }
           >
-            <item.icon className="w-5 h-5 shrink-0" />
-            {!collapsed && <span className="truncate">{item.label}</span>}
+            {({ isActive }) => (
+              <>
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                )}
+                <item.icon
+                  className={cn(
+                    "w-5 h-5 shrink-0 transition-colors",
+                    isActive && "drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]",
+                  )}
+                />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -84,7 +99,7 @@ export function Sidebar() {
       {/* Collapse toggle */}
       <button
         onClick={toggleCollapse}
-        className="p-3 border-t border-gray-200 dark:border-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors text-gray-400"
+        className="p-3 border-t border-gray-200/80 dark:border-white/[0.04] hover:bg-gray-100/80 dark:hover:bg-white/[0.04] transition-all text-gray-400 dark:text-gray-500"
       >
         {collapsed ? (
           <ChevronRight className="w-5 h-5 mx-auto" />

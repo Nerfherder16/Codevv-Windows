@@ -126,7 +126,7 @@ export function CanvasPage() {
               className="flex flex-col justify-between"
             >
               <div className="flex items-start gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 shrink-0">
+                <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
                   <Pencil className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -139,7 +139,7 @@ export function CanvasPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-end mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-end mt-4 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                 <span className="text-xs text-gray-400 dark:text-gray-500">
                   Updated {relativeTime(canvas.updated_at)}
                 </span>

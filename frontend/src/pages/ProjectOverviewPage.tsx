@@ -23,21 +23,24 @@ interface QuickLinkColor {
   count: string;
 }
 
-const LINK_COLORS: Record<string, QuickLinkColor> = {
+const LINK_COLORS: Record<string, QuickLinkColor & { stat: string }> = {
   emerald: {
-    bg: "bg-emerald-50 dark:bg-emerald-900/15",
+    bg: "bg-emerald-50 stat-emerald",
     icon: "text-emerald-600 dark:text-emerald-400",
     count: "text-emerald-700 dark:text-emerald-300",
+    stat: "stat-emerald",
   },
   amber: {
-    bg: "bg-amber-50 dark:bg-amber-900/15",
+    bg: "bg-amber-50 stat-amber",
     icon: "text-amber-600 dark:text-amber-400",
     count: "text-amber-700 dark:text-amber-300",
+    stat: "stat-amber",
   },
   violet: {
-    bg: "bg-violet-50 dark:bg-violet-900/15",
+    bg: "bg-violet-50 stat-violet",
     icon: "text-violet-600 dark:text-violet-400",
     count: "text-violet-700 dark:text-violet-300",
+    stat: "stat-violet",
   },
 };
 
@@ -50,7 +53,12 @@ function QuickLink({
 }: QuickLinkProps & { color?: string }) {
   const c = LINK_COLORS[color] || LINK_COLORS.emerald;
   return (
-    <Card hover onClick={onClick} className={`flex items-center gap-4 ${c.bg}`}>
+    <Card
+      hover
+      glow
+      onClick={onClick}
+      className={`flex items-center gap-4 ${c.bg}`}
+    >
       <div
         className={`flex items-center justify-center w-12 h-12 rounded-xl ${c.icon}`}
       >

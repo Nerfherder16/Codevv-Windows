@@ -56,8 +56,14 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 relative overflow-hidden">
+      {/* Background ambient glow */}
+      <div className="absolute inset-0 dark:block hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/[0.04] rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/[0.03] rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10 animate-in">
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <img
@@ -73,7 +79,7 @@ export function LoginPage() {
         </div>
 
         {/* Form card */}
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-700/50 bg-white dark:bg-gray-900 p-6 shadow-lg dark:shadow-black/20">
+        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.03] dark:backdrop-blur-xl p-6 shadow-lg dark:shadow-black/20">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Display name (register only) */}
             {mode === "register" && (

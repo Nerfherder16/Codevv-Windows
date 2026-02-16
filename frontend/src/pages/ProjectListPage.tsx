@@ -111,6 +111,7 @@ export function ProjectListPage() {
             <Card
               key={project.id}
               hover
+              glow
               onClick={() => navigate(`/projects/${project.id}`)}
               className="flex flex-col justify-between"
             >
@@ -124,7 +125,7 @@ export function ProjectListPage() {
                   </p>
                 )}
               </div>
-              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-white/[0.04]">
                 <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                   <Users className="w-3.5 h-3.5" />
                   {project.member_count}{" "}

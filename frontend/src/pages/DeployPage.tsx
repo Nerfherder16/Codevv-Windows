@@ -341,7 +341,7 @@ export function DeployPage() {
                 {/* Environment header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
                       <Server className="w-5 h-5" />
                     </div>
                     <div>
@@ -400,7 +400,7 @@ export function DeployPage() {
 
                 {/* Deploy jobs for this environment */}
                 {envJobs.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                  <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/[0.04]">
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                       Deploy History
                     </p>

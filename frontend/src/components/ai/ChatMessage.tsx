@@ -8,10 +8,10 @@ function ToolUseIndicator({ tool }: { tool: ToolUseEvent }) {
   const shortName = tool.name.replace(/^mcp__\w+__/, "");
 
   return (
-    <div className="my-1 rounded border border-gray-200 dark:border-gray-700 text-xs">
+    <div className="my-1 rounded-lg border border-gray-200 dark:border-white/[0.08] text-xs">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 w-full px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left"
+        className="flex items-center gap-1.5 w-full px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-white/[0.03] text-left rounded-lg transition-colors"
       >
         <Wrench className="w-3 h-3 text-gray-400 shrink-0" />
         <span className="font-mono text-gray-600 dark:text-gray-400 truncate flex-1">
@@ -24,7 +24,7 @@ function ToolUseIndicator({ tool }: { tool: ToolUseEvent }) {
         )}
       </button>
       {open && (
-        <div className="px-2 pb-2 space-y-1 border-t border-gray-200 dark:border-gray-700 pt-1">
+        <div className="px-2 pb-2 space-y-1 border-t border-gray-200 dark:border-white/[0.06] pt-1">
           <div>
             <span className="text-gray-500 dark:text-gray-500">Input:</span>
             <pre className="mt-0.5 p-1.5 rounded bg-gray-50 dark:bg-gray-800 overflow-x-auto whitespace-pre-wrap break-all">
@@ -54,8 +54,8 @@ export function ChatMessageBubble({ message }: { message: ChatMessageType }) {
       <div
         className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
           isUser
-            ? "bg-amber-500 text-white"
-            : "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+            ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-sm shadow-amber-500/20"
+            : "bg-gray-200 dark:bg-white/[0.06] text-gray-600 dark:text-gray-300"
         }`}
       >
         {isUser ? (
@@ -69,8 +69,8 @@ export function ChatMessageBubble({ message }: { message: ChatMessageType }) {
       <div
         className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
           isUser
-            ? "bg-amber-500 text-white"
-            : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            ? "bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md shadow-amber-500/15"
+            : "bg-gray-100 dark:bg-white/[0.04] dark:border dark:border-white/[0.06] text-gray-900 dark:text-gray-100"
         }`}
       >
         {isUser ? (
