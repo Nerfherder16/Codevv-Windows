@@ -1,11 +1,30 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronRight, Wrench, User, Bot } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Wrench,
+  Plug,
+  User,
+  Bot,
+} from "lucide-react";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import type { ChatMessage as ChatMessageType, ToolUseEvent } from "../../types";
 
+function parseMCPToolName(name: string): {
+  isMCP: boolean;
+  server: string;
+  tool: string;
+} {
+  const match = name.match(/^mcp__([^_]+(?:[-][^_]+)*)__(.+)$/);
+  if (match) {
+    return { isMCP: true, server: match[1], tool: match[2] };
+  }
+  return { isMCP: false, server: "", tool: name };
+}
+
 function ToolUseIndicator({ tool }: { tool: ToolUseEvent }) {
   const [open, setOpen] = useState(false);
-  const shortName = tool.name.replace(/^mcp__\w+__/, "");
+  const parsed = parseMCPToolName(tool.name);
 
   return (
     <div className="my-1 rounded-lg border border-gray-200 dark:border-white/[0.08] text-xs">
@@ -13,10 +32,19 @@ function ToolUseIndicator({ tool }: { tool: ToolUseEvent }) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 w-full px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-white/[0.03] text-left rounded-lg transition-colors"
       >
-        <Wrench className="w-3 h-3 text-gray-400 shrink-0" />
+        {parsed.isMCP ? (
+          <Plug className="w-3 h-3 text-violet-400 shrink-0" />
+        ) : (
+          <Wrench className="w-3 h-3 text-amber-400 shrink-0" />
+        )}
         <span className="font-mono text-gray-600 dark:text-gray-400 truncate flex-1">
-          {shortName}
+          {parsed.tool}
         </span>
+        {parsed.isMCP && (
+          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/15 text-violet-600 dark:text-violet-400 font-medium shrink-0">
+            {parsed.server}
+          </span>
+        )}
         {open ? (
           <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
         ) : (

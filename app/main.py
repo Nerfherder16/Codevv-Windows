@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai
+from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp
 import structlog
 
 structlog.configure(
@@ -46,6 +46,13 @@ async def lifespan(app: FastAPI):
 
     yield
 
+    # Shutdown MCP connections
+    try:
+        from app.services.mcp_manager import get_mcp_manager
+        await get_mcp_manager().shutdown()
+    except Exception as e:
+        logger.warning("mcp.shutdown_error", error=str(e))
+
     logger.info("shutdown")
 
 
@@ -69,6 +76,7 @@ app.include_router(knowledge.router, prefix="/api")
 app.include_router(video.router, prefix="/api")
 app.include_router(deploy.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+app.include_router(mcp.router, prefix="/api")
 
 
 @app.get("/health")

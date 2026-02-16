@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import AsyncIterator
 
 import anthropic
@@ -14,6 +15,7 @@ from sqlalchemy.orm import selectinload
 from app.core.claude_auth import get_claude_auth, ClaudeAuth
 from app.core.config import get_settings
 from app.core.recall_client import get_recall_client
+from app.services.mcp_manager import get_mcp_manager
 from app.models.project import Project, ProjectMember
 from app.models.canvas import Canvas, CanvasComponent
 from app.models.idea import Idea
@@ -116,6 +118,47 @@ TOOLS = [
                 "query": {"type": "string"},
             },
             "required": ["query"],
+        },
+    },
+    {
+        "name": "autopilot_status",
+        "description": "Get the current Autopilot mode and progress. Returns mode (plan/build/verify), task status, and recent build log entries.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "work_dir": {"type": "string", "description": "Working directory containing .autopilot/. Defaults to current dir."},
+            },
+        },
+    },
+    {
+        "name": "autopilot_read_spec",
+        "description": "Read the Autopilot spec.md file which contains the build specification created during /plan.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "work_dir": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "autopilot_read_progress",
+        "description": "Read the Autopilot progress.json with all task statuses (DONE/PENDING/IN_PROGRESS/BLOCKED).",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "work_dir": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "autopilot_read_log",
+        "description": "Read the Autopilot build.log file with build output and TDD results.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "work_dir": {"type": "string"},
+                "tail_lines": {"type": "integer", "description": "Number of lines from end. Default 50."},
+            },
         },
     },
 ]
@@ -297,6 +340,87 @@ async def _tool_get_knowledge_context(project_slug: str, query: str) -> str:
         return json.dumps({"error": str(e)})
 
 
+def _autopilot_dir(work_dir: str | None = None) -> Path:
+    """Resolve the .autopilot directory."""
+    base = Path(work_dir) if work_dir else Path.cwd()
+    return base / ".autopilot"
+
+
+def _tool_autopilot_status(work_dir: str | None = None) -> str:
+    ap = _autopilot_dir(work_dir)
+    if not ap.exists():
+        return json.dumps({"error": "No .autopilot/ directory found", "hint": "Run /plan first to create an Autopilot spec."})
+
+    result: dict = {"autopilot_dir": str(ap)}
+
+    # Read mode
+    mode_file = ap / "mode"
+    if mode_file.exists():
+        result["mode"] = mode_file.read_text(encoding="utf-8").strip()
+
+    # Read progress summary
+    progress_file = ap / "progress.json"
+    if progress_file.exists():
+        try:
+            progress = json.loads(progress_file.read_text(encoding="utf-8"))
+            tasks = progress.get("tasks", [])
+            result["task_summary"] = {
+                "total": len(tasks),
+                "done": sum(1 for t in tasks if t.get("status") == "DONE"),
+                "in_progress": sum(1 for t in tasks if t.get("status") == "IN_PROGRESS"),
+                "pending": sum(1 for t in tasks if t.get("status") == "PENDING"),
+                "blocked": sum(1 for t in tasks if t.get("status") == "BLOCKED"),
+            }
+        except (json.JSONDecodeError, OSError):
+            result["task_summary"] = {"error": "Could not parse progress.json"}
+
+    # Read last few lines of build log
+    log_file = ap / "build.log"
+    if log_file.exists():
+        try:
+            lines = log_file.read_text(encoding="utf-8").splitlines()
+            result["recent_log"] = lines[-10:] if len(lines) > 10 else lines
+        except OSError:
+            pass
+
+    # Check for spec
+    result["has_spec"] = (ap / "spec.md").exists()
+
+    return json.dumps(result)
+
+
+def _tool_autopilot_read_spec(work_dir: str | None = None) -> str:
+    spec = _autopilot_dir(work_dir) / "spec.md"
+    if not spec.exists():
+        return json.dumps({"error": "No spec.md found. Run /plan to create one."})
+    try:
+        return spec.read_text(encoding="utf-8")
+    except OSError as e:
+        return json.dumps({"error": str(e)})
+
+
+def _tool_autopilot_read_progress(work_dir: str | None = None) -> str:
+    progress = _autopilot_dir(work_dir) / "progress.json"
+    if not progress.exists():
+        return json.dumps({"error": "No progress.json found."})
+    try:
+        return progress.read_text(encoding="utf-8")
+    except OSError as e:
+        return json.dumps({"error": str(e)})
+
+
+def _tool_autopilot_read_log(work_dir: str | None = None, tail_lines: int = 50) -> str:
+    log = _autopilot_dir(work_dir) / "build.log"
+    if not log.exists():
+        return json.dumps({"error": "No build.log found."})
+    try:
+        lines = log.read_text(encoding="utf-8").splitlines()
+        tail = lines[-tail_lines:] if len(lines) > tail_lines else lines
+        return "\n".join(tail)
+    except OSError as e:
+        return json.dumps({"error": str(e)})
+
+
 async def _execute_tool(
     name: str,
     tool_input: dict,
@@ -341,6 +465,17 @@ async def _execute_tool(
                 return await _tool_get_knowledge_context(
                     tool_input.get("project_slug", project_slug),
                     tool_input["query"],
+                )
+            case "autopilot_status":
+                return _tool_autopilot_status(tool_input.get("work_dir"))
+            case "autopilot_read_spec":
+                return _tool_autopilot_read_spec(tool_input.get("work_dir"))
+            case "autopilot_read_progress":
+                return _tool_autopilot_read_progress(tool_input.get("work_dir"))
+            case "autopilot_read_log":
+                return _tool_autopilot_read_log(
+                    tool_input.get("work_dir"),
+                    tool_input.get("tail_lines", 50),
                 )
             case _:
                 return json.dumps({"error": f"Unknown tool: {name}"})
@@ -414,6 +549,10 @@ class ClaudeService:
         chosen_model = model or settings.claude_model
         system_prompt = _build_system_prompt(project_name, project_slug, project_id)
 
+        # Build combined tool list: built-in + MCP
+        mcp_mgr = get_mcp_manager()
+        all_tools = list(TOOLS) + mcp_mgr.get_all_anthropic_tools()
+
         # Get or init conversation history
         key = self._key(user_id, project_id)
         if key not in self._conversations:
@@ -436,7 +575,7 @@ class ClaudeService:
                     max_tokens=4096,
                     system=system_prompt,
                     messages=messages,
-                    tools=TOOLS,
+                    tools=all_tools,
                 ) as stream:
                     # Collect the full response for history
                     collected_content = []
@@ -512,10 +651,17 @@ class ClaudeService:
                                 tool=block.name,
                                 input_keys=list(block.input.keys()),
                             )
-                            result = await _execute_tool(
-                                block.name, block.input,
-                                project_id, project_slug, db,
-                            )
+
+                            # Route: MCP tools vs built-in tools
+                            if mcp_mgr.is_mcp_tool(block.name):
+                                result = await mcp_mgr.call_tool(
+                                    block.name, block.input,
+                                )
+                            else:
+                                result = await _execute_tool(
+                                    block.name, block.input,
+                                    project_id, project_slug, db,
+                                )
 
                             tool_results.append({
                                 "type": "tool_result",

@@ -14,6 +14,12 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
+  Plug,
+  Unplug,
+  Loader2,
+  Wrench,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { api } from "../lib/api";
 import type {
@@ -21,6 +27,7 @@ import type {
   ProjectMember,
   ProjectRole,
   AIModel,
+  MCPServer,
 } from "../types";
 import { useToast } from "../contexts/ToastContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -77,6 +84,12 @@ export function SettingsPage() {
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
 
+  // MCP servers
+  const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
+  const [mcpLoading, setMcpLoading] = useState(false);
+  const [connectingServer, setConnectingServer] = useState<string | null>(null);
+  const [expandedServer, setExpandedServer] = useState<string | null>(null);
+
   const fetchProject = useCallback(async () => {
     if (!projectId) return;
     try {
@@ -118,6 +131,11 @@ export function SettingsPage() {
       .get<{ authenticated: boolean; method?: string }>(`/auth/claude-status`)
       .then(setClaudeAuth)
       .catch(() => setClaudeAuth({ authenticated: false }));
+    // Fetch MCP servers
+    api
+      .get<MCPServer[]>(`/mcp/servers`)
+      .then(setMcpServers)
+      .catch(() => {});
   }, [projectId]);
 
   const handleMigrateKnowledge = async () => {
@@ -141,6 +159,72 @@ export function SettingsPage() {
       setMigrationResult(`Error: ${msg}`);
     } finally {
       setMigrating(false);
+    }
+  };
+
+  const handleConnectMCP = async (name: string) => {
+    setConnectingServer(name);
+    try {
+      const result = await api.post<MCPServer>(
+        `/mcp/servers/${name}/connect`,
+        {},
+      );
+      setMcpServers((prev) =>
+        prev.map((s) =>
+          s.name === name
+            ? { ...s, ...result, enabled: result.status === "connected" }
+            : s,
+        ),
+      );
+      if (result.status === "connected") {
+        toast(`Connected to ${name} (${result.tool_count} tools)`, "success");
+      } else {
+        toast(`Failed to connect to ${name}: ${result.error}`, "error");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Connection failed";
+      toast(msg, "error");
+    } finally {
+      setConnectingServer(null);
+    }
+  };
+
+  const handleDisconnectMCP = async (name: string) => {
+    try {
+      await api.post(`/mcp/servers/${name}/disconnect`, {});
+      setMcpServers((prev) =>
+        prev.map((s) =>
+          s.name === name
+            ? {
+                ...s,
+                status: "disconnected",
+                enabled: false,
+                tool_count: 0,
+                tools: [],
+                error: null,
+              }
+            : s,
+        ),
+      );
+      toast(`Disconnected from ${name}`, "info");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Disconnect failed";
+      toast(msg, "error");
+    }
+  };
+
+  const handleRefreshMCP = async () => {
+    setMcpLoading(true);
+    try {
+      await api.post(`/mcp/servers/refresh`, {});
+      const servers = await api.get<MCPServer[]>(`/mcp/servers`);
+      setMcpServers(servers);
+      toast("MCP configs refreshed", "success");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Refresh failed";
+      toast(msg, "error");
+    } finally {
+      setMcpLoading(false);
     }
   };
 
@@ -577,6 +661,146 @@ export function SettingsPage() {
             </div>
           </Card>
         </div>
+      </section>
+
+      {/* MCP Servers */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Plug className="w-5 h-5" />
+            MCP Servers
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              ({mcpServers.filter((s) => s.status === "connected").length}/
+              {mcpServers.length})
+            </span>
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefreshMCP}
+            loading={mcpLoading}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refresh
+          </Button>
+        </div>
+
+        {mcpServers.length === 0 ? (
+          <Card>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No MCP servers found in ~/.claude.json
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {mcpServers.map((server) => (
+              <Card key={server.name}>
+                <div className="flex items-start gap-3">
+                  {/* Status indicator */}
+                  <div
+                    className={`mt-1 w-2.5 h-2.5 rounded-full shrink-0 ${
+                      server.status === "connected"
+                        ? "bg-green-500"
+                        : server.status === "connecting"
+                          ? "bg-amber-500 animate-pulse"
+                          : server.status === "failed"
+                            ? "bg-red-500"
+                            : "bg-gray-400 dark:bg-gray-600"
+                    }`}
+                  />
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          setExpandedServer(
+                            expandedServer === server.name ? null : server.name,
+                          )
+                        }
+                        className="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-white hover:text-amber-600 dark:hover:text-amber-400 transition-colors"
+                      >
+                        {expandedServer === server.name ? (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        )}
+                        {server.name}
+                      </button>
+                      {server.status === "connected" && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium">
+                          {server.tool_count} tools
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono truncate">
+                      {server.command}{" "}
+                      {server.args
+                        .filter(
+                          (a) => !a.startsWith("C:") && !a.startsWith("/"),
+                        )
+                        .join(" ")}
+                    </p>
+                    {server.error && (
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                        {server.error}
+                      </p>
+                    )}
+
+                    {/* Expanded tool list */}
+                    {expandedServer === server.name &&
+                      server.tools.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-white/[0.04]">
+                          <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500 font-semibold mb-1.5">
+                            Available Tools
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {server.tools.map((tool) => (
+                              <span
+                                key={tool}
+                                className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/[0.05] text-gray-600 dark:text-gray-400 font-mono"
+                              >
+                                <Wrench className="w-2.5 h-2.5" />
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                  </div>
+
+                  {/* Connect/Disconnect button */}
+                  <div className="shrink-0">
+                    {server.status === "connected" ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDisconnectMCP(server.name)}
+                      >
+                        <Unplug className="w-3.5 h-3.5" />
+                        Disconnect
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        loading={connectingServer === server.name}
+                        onClick={() => handleConnectMCP(server.name)}
+                      >
+                        <Plug className="w-3.5 h-3.5" />
+                        Connect
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2">
+          Connected MCP servers expose tools to the AI assistant in chat.
+          Configure servers in ~/.claude.json.
+        </p>
       </section>
 
       {/* Danger Zone */}

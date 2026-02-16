@@ -222,6 +222,30 @@ export interface AIModel {
   description: string;
 }
 
+// MCP
+export type MCPServerStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "failed";
+
+export interface MCPServer {
+  name: string;
+  command: string;
+  args: string[];
+  status: MCPServerStatus;
+  error: string | null;
+  tool_count: number;
+  tools: string[];
+  enabled: boolean;
+}
+
+export interface MCPTool {
+  name: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+}
+
 // Deploy
 export type DeployStatus =
   | "pending"
