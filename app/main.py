@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp
+from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp, conversations
 import structlog
 
 structlog.configure(
@@ -77,11 +77,54 @@ app.include_router(video.router, prefix="/api")
 app.include_router(deploy.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(mcp.router, prefix="/api")
+app.include_router(conversations.router, prefix="/api")
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": settings.app_name, "version": "0.1.0"}
+
+
+@app.get("/api/services/status")
+async def services_status():
+    """Health check for external services: Ollama, Recall, Claude."""
+    import httpx
+    from app.core.recall_client import get_recall_client
+    from app.core.claude_auth import get_claude_auth
+
+    results: dict = {}
+
+    # Ollama
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(f"{settings.ollama_url}/api/tags")
+            results["ollama"] = {"status": "connected", "url": settings.ollama_url}
+    except Exception as e:
+        results["ollama"] = {"status": "unavailable", "url": settings.ollama_url, "error": str(e)}
+
+    # Recall
+    try:
+        recall = get_recall_client()
+        await recall.health()
+        results["recall"] = {"status": "connected", "url": settings.recall_url}
+    except Exception as e:
+        results["recall"] = {"status": "unavailable", "url": settings.recall_url, "error": str(e)}
+
+    # Claude
+    if settings.anthropic_api_key:
+        results["claude"] = {"status": "connected", "method": "api_key"}
+    else:
+        try:
+            auth = get_claude_auth()
+            status = auth.get_status()
+            if status.get("authenticated"):
+                results["claude"] = {"status": "connected", "method": "oauth"}
+            else:
+                results["claude"] = {"status": "not_authenticated"}
+        except Exception:
+            results["claude"] = {"status": "not_configured"}
+
+    return results
 
 
 # Serve frontend static files

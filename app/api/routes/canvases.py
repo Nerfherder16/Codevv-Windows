@@ -15,10 +15,56 @@ from app.schemas.canvas import (
     ComponentResponse,
 )
 from app.api.routes.projects import get_project_with_access
+from app.core.background import enqueue
+from app.core.database import async_session
+from app.models.knowledge import KnowledgeEntity
+from app.models.project import Project
+from app.services.recall_knowledge import store_knowledge
 import uuid
 import json
+import structlog
+
+logger = structlog.get_logger()
 
 router = APIRouter(prefix="/projects/{project_id}/canvases", tags=["canvases"])
+
+
+async def _sync_component_to_knowledge(component_id: str, project_id: str):
+    """Background: create KnowledgeEntity for a canvas component and push to Recall."""
+    async with async_session() as db:
+        result = await db.execute(
+            select(CanvasComponent).where(CanvasComponent.id == component_id)
+        )
+        comp = result.scalar_one_or_none()
+        if not comp:
+            return
+
+        entity = KnowledgeEntity(
+            project_id=project_id,
+            name=comp.name,
+            entity_type=comp.component_type or "service",
+            description=comp.description,
+            source_type="canvas",
+            source_id=comp.id,
+        )
+        db.add(entity)
+        await db.flush()
+        await db.commit()
+
+        # Push to Recall
+        try:
+            proj_result = await db.execute(select(Project).where(Project.id == project_id))
+            project = proj_result.scalar_one_or_none()
+            if project:
+                await store_knowledge(
+                    project_slug=project.slug,
+                    name=comp.name,
+                    entity_type=comp.component_type or "service",
+                    description=comp.description,
+                    metadata={"source": "canvas", "tech_stack": comp.tech_stack or ""},
+                )
+        except Exception as e:
+            logger.warning("component.recall_sync_failed", component_id=component_id, error=str(e))
 
 
 def _component_response(comp: CanvasComponent) -> ComponentResponse:
@@ -225,6 +271,9 @@ async def add_component(
     )
     db.add(component)
     await db.flush()
+
+    # Sync component to Knowledge Graph in background
+    await enqueue("component-to-kg", _sync_component_to_knowledge, component.id, project_id)
 
     return _component_response(component)
 

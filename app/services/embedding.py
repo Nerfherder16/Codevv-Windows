@@ -1,12 +1,15 @@
 import json
 import httpx
 import numpy as np
+import structlog
 from app.core.config import get_settings
 
 settings = get_settings()
+logger = structlog.get_logger()
 
 
 async def get_embedding(text: str) -> list[float]:
+    """Get embedding from Ollama. Raises on failure."""
     async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(
             f"{settings.ollama_url}/api/embed",
@@ -15,6 +18,15 @@ async def get_embedding(text: str) -> list[float]:
         resp.raise_for_status()
         data = resp.json()
         return data["embeddings"][0]
+
+
+async def get_embedding_safe(text: str) -> list[float] | None:
+    """Get embedding from Ollama, returning None if unavailable."""
+    try:
+        return await get_embedding(text)
+    except Exception as e:
+        logger.warning("embedding.unavailable", error=str(e))
+        return None
 
 
 def embedding_to_json(embedding: list[float]) -> str:

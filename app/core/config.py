@@ -1,7 +1,9 @@
 import sys
 import os
+import secrets
 from pathlib import Path
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from functools import lru_cache
 
 
@@ -10,6 +12,18 @@ def get_data_dir() -> Path:
     if getattr(sys, "frozen", False):
         return Path(sys.executable).parent
     return Path(__file__).parent.parent.parent
+
+
+def _get_or_create_jwt_secret() -> str:
+    """Read JWT secret from file, or generate and persist one."""
+    secret_file = get_data_dir() / ".jwt_secret"
+    if secret_file.exists():
+        stored = secret_file.read_text(encoding="utf-8").strip()
+        if stored:
+            return stored
+    secret = secrets.token_hex(32)
+    secret_file.write_text(secret, encoding="utf-8")
+    return secret
 
 
 class Settings(BaseSettings):
@@ -43,6 +57,13 @@ class Settings(BaseSettings):
     open_browser: bool = True
 
     model_config = {"env_file": ".env", "extra": "ignore"}
+
+    @model_validator(mode="after")
+    def _auto_jwt_secret(self) -> "Settings":
+        """Replace the hardcoded default with a persistent random secret."""
+        if self.jwt_secret == "foundry-local-secret":
+            self.jwt_secret = _get_or_create_jwt_secret()
+        return self
 
 
 @lru_cache

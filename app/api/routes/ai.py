@@ -136,7 +136,7 @@ async def _stream_events(
             yield f"event: tool_use\ndata: {json.dumps({'name': event['name'], 'input': event.get('input', {})})}\n\n"
 
         elif event_type == "done":
-            yield f"event: done\ndata: {json.dumps({'model': event.get('model', '')})}\n\n"
+            yield f"event: done\ndata: {json.dumps({'model': event.get('model', ''), 'conversation_id': event.get('conversation_id')})}\n\n"
 
         elif event_type == "error":
             yield f"event: error\ndata: {json.dumps({'message': event.get('message', 'Unknown error')})}\n\n"
@@ -204,7 +204,7 @@ async def close_session(
     await get_project_with_access(project_id, user, db)
 
     service = get_claude_service()
-    service.clear_history(user.id, project_id)
+    await service.clear_history(user.id, project_id)
     return {"status": "cleared"}
 
 

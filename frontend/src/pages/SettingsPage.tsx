@@ -84,6 +84,13 @@ export function SettingsPage() {
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
 
+  // Service health
+  const [serviceStatus, setServiceStatus] = useState<Record<
+    string,
+    { status: string; url?: string; method?: string; error?: string }
+  > | null>(null);
+  const [serviceLoading, setServiceLoading] = useState(false);
+
   // MCP servers
   const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
   const [mcpLoading, setMcpLoading] = useState(false);
@@ -109,34 +116,47 @@ export function SettingsPage() {
     fetchProject();
   }, [fetchProject]);
 
-  // Fetch AI models and Recall health
+  const fetchServiceStatus = useCallback(async () => {
+    setServiceLoading(true);
+    try {
+      const data =
+        await api.get<
+          Record<
+            string,
+            { status: string; url?: string; method?: string; error?: string }
+          >
+        >("/services/status");
+      setServiceStatus(data);
+      // Update Recall status from service check
+      if (data.recall?.status === "connected") setRecallStatus("healthy");
+      else setRecallStatus("unavailable");
+      // Update Claude auth from service check
+      if (data.claude?.status === "connected") {
+        setClaudeAuth({ authenticated: true, method: data.claude.method });
+      } else {
+        setClaudeAuth({ authenticated: false });
+      }
+    } catch {
+      setServiceStatus(null);
+    } finally {
+      setServiceLoading(false);
+    }
+  }, []);
+
+  // Fetch AI models, service status, and MCP servers
   useEffect(() => {
     if (!projectId) return;
     api
       .get<AIModel[]>(`/projects/${projectId}/ai/models`)
       .then(setModels)
       .catch(() => {});
-    // Check Recall health via the backend
-    fetch("/health")
-      .then((r) => r.json())
-      .then(() => setRecallStatus("healthy"))
-      .catch(() => setRecallStatus("unavailable"));
-    // Actually check Recall directly is better — use the knowledge endpoint as proxy
-    api
-      .get(`/projects/${projectId}/knowledge/recall-graph`)
-      .then(() => setRecallStatus("healthy"))
-      .catch(() => setRecallStatus("unavailable"));
-    // Check Claude auth status
-    api
-      .get<{ authenticated: boolean; method?: string }>(`/auth/claude-status`)
-      .then(setClaudeAuth)
-      .catch(() => setClaudeAuth({ authenticated: false }));
+    fetchServiceStatus();
     // Fetch MCP servers
     api
       .get<MCPServer[]>(`/mcp/servers`)
       .then(setMcpServers)
       .catch(() => {});
-  }, [projectId]);
+  }, [projectId, fetchServiceStatus]);
 
   const handleMigrateKnowledge = async () => {
     if (!projectId) return;
@@ -661,6 +681,75 @@ export function SettingsPage() {
             </div>
           </Card>
         </div>
+      </section>
+
+      {/* External Services */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Wrench className="w-5 h-5" />
+            External Services
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={fetchServiceStatus}
+            loading={serviceLoading}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refresh
+          </Button>
+        </div>
+
+        {serviceStatus === null ? (
+          <Card>
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              Unable to check service status
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {Object.entries(serviceStatus).map(([name, info]) => (
+              <Card key={name} className="flex items-center gap-3">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    info.status === "connected"
+                      ? "bg-green-500"
+                      : info.status === "not_authenticated"
+                        ? "bg-amber-500"
+                        : "bg-red-500"
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+                    {name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {info.url && info.url}
+                    {info.method && `via ${info.method}`}
+                    {info.error && (
+                      <span className="text-red-500 dark:text-red-400">
+                        {" "}
+                        {info.error}
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    info.status === "connected"
+                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                      : info.status === "not_authenticated"
+                        ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                        : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                  }`}
+                >
+                  {info.status}
+                </span>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* MCP Servers */}

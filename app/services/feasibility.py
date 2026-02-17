@@ -1,7 +1,10 @@
+import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.idea import Idea
 from app.services.llm import llm_generate
+
+logger = structlog.get_logger()
 
 
 async def score_idea_feasibility(idea_id: str, db: AsyncSession):
@@ -29,8 +32,9 @@ Consider: technical complexity, available tooling, time investment, and common p
         idea.feasibility_score = float(result.get("score", 0.5))
         idea.feasibility_reason = result.get("reason", "No reason provided")
     except Exception as e:
+        logger.warning("feasibility.scoring_failed", idea_id=idea_id, error=str(e))
         idea.feasibility_score = None
-        idea.feasibility_reason = f"Scoring failed: {e}"
+        idea.feasibility_reason = "Scoring service unavailable"
 
     await db.flush()
     await db.commit()

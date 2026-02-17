@@ -88,7 +88,7 @@ export function ProjectOverviewPage() {
     try {
       const [proj, canv, ide] = await Promise.all([
         api.get<ProjectDetail>(`/projects/${projectId}`),
-        api.get<Canvas[]>(`/projects/${projectId}/canvases`).catch(() => []),
+        api.get<Canvas[]>(`/projects/${projectId}/canvas`).catch(() => []),
         api.get<Idea[]>(`/projects/${projectId}/ideas`).catch(() => []),
       ]);
       setProject(proj);
@@ -155,7 +155,7 @@ export function ProjectOverviewPage() {
           label="Canvases"
           count={canvases.length}
           color="emerald"
-          onClick={() => navigate(`/projects/${projectId}/canvases`)}
+          onClick={() => navigate(`/projects/${projectId}/canvas`)}
         />
         <QuickLink
           icon={<Lightbulb className="w-6 h-6" />}
@@ -228,7 +228,7 @@ export function ProjectOverviewPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/projects/${projectId}/canvases`)}
+              onClick={() => navigate(`/projects/${projectId}/canvas`)}
             >
               View all
             </Button>

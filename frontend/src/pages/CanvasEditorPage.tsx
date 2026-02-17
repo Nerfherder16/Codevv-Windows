@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// tldraw removed for desktop build — using placeholder canvas
+import { TldrawCanvas } from "../components/canvas/TldrawCanvas";
 import {
   ArrowLeft,
   Plus,
@@ -136,6 +136,22 @@ export function CanvasEditorPage() {
     }
   };
 
+  const handleSaveSnapshot = useCallback(
+    async (snapshot: Record<string, unknown>) => {
+      if (!projectId || !canvasId) return;
+      try {
+        await api.patch(`/projects/${projectId}/canvases/${canvasId}`, {
+          tldraw_snapshot: snapshot,
+        });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to save canvas";
+        toast(message, "error");
+      }
+    },
+    [projectId, canvasId, toast],
+  );
+
   const handleDeleteComponent = async (componentId: string) => {
     try {
       await api.delete(
@@ -189,7 +205,7 @@ export function CanvasEditorPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/projects/${projectId}/canvases`)}
+            onClick={() => navigate(`/projects/${projectId}/canvas`)}
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
@@ -218,12 +234,11 @@ export function CanvasEditorPage() {
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Canvas area */}
-        <div className="flex-1 relative bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
-          <div className="text-center text-gray-400">
-            <Layers className="w-16 h-16 mx-auto mb-4 opacity-30" />
-            <p className="text-lg font-medium">Architecture Canvas</p>
-            <p className="text-sm mt-1">Add components using the side panel</p>
-          </div>
+        <div className="flex-1 relative">
+          <TldrawCanvas
+            snapshot={canvas.tldraw_snapshot}
+            onSave={handleSaveSnapshot}
+          />
         </div>
 
         {/* Side panel */}

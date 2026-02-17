@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from pathlib import Path
 from typing import AsyncIterator
 
@@ -21,6 +22,7 @@ from app.models.canvas import Canvas, CanvasComponent
 from app.models.idea import Idea
 from app.models.scaffold import ScaffoldJob
 from app.models.deploy import Environment
+from app.models.conversation import Conversation, ConversationMessage
 
 logger = structlog.get_logger()
 
@@ -118,6 +120,45 @@ TOOLS = [
                 "query": {"type": "string"},
             },
             "required": ["query"],
+        },
+    },
+    {
+        "name": "create_idea",
+        "description": "Create a new Idea from the conversation. Use when the user asks to capture something as an idea or a design proposal emerges.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Short title for the idea"},
+                "description": {"type": "string", "description": "Detailed description of the idea"},
+                "category": {"type": "string", "description": "Optional category (e.g. feature, improvement, research)"},
+            },
+            "required": ["title", "description"],
+        },
+    },
+    {
+        "name": "push_to_recall",
+        "description": "Store key decisions, entities, or facts from this conversation in the project's knowledge base (Recall). Use when the user asks to 'remember this', 'save to Recall', or 'save to memory', or when important architectural decisions emerge.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "description": "List of knowledge items to store",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "content": {"type": "string", "description": "The knowledge content to store"},
+                            "entity_type": {
+                                "type": "string",
+                                "enum": ["decision", "concept", "technology", "requirement", "architecture"],
+                                "description": "Type of knowledge entity",
+                            },
+                        },
+                        "required": ["content", "entity_type"],
+                    },
+                },
+            },
+            "required": ["items"],
         },
     },
     {
@@ -332,12 +373,100 @@ async def _tool_get_deploy_config(project_id: str, db: AsyncSession) -> str:
 
 async def _tool_get_knowledge_context(project_slug: str, query: str) -> str:
     recall = get_recall_client()
-    domain = f"foundry:{project_slug}" if project_slug else None
     try:
         context = await recall.get_context(query=query, max_tokens=2000)
         return context if context else json.dumps({"result": "No knowledge found for this query."})
     except Exception as e:
         return json.dumps({"error": str(e)})
+
+
+async def _tool_push_to_recall(
+    project_id: str, project_slug: str, items: list[dict], db: AsyncSession,
+) -> str:
+    """Store knowledge items in Recall and create local KnowledgeEntity rows."""
+    from app.models.knowledge import KnowledgeEntity
+    from app.services.recall_knowledge import store_knowledge
+
+    stored = []
+    for item in items:
+        content = item.get("content", "")
+        entity_type = item.get("entity_type", "concept")
+        if not content:
+            continue
+
+        # Create local entity
+        entity = KnowledgeEntity(
+            project_id=project_id,
+            name=content[:300],
+            entity_type=entity_type,
+            description=content,
+            source_type="conversation",
+        )
+        db.add(entity)
+
+        # Push to Recall
+        try:
+            await store_knowledge(
+                project_slug=project_slug,
+                name=content[:100],
+                entity_type=entity_type,
+                description=content,
+                metadata={"source": "conversation"},
+            )
+            stored.append({"content": content[:100], "status": "stored"})
+        except Exception as e:
+            logger.warning("push_to_recall.failed", error=str(e))
+            stored.append({"content": content[:100], "status": "local_only", "error": str(e)})
+
+    await db.flush()
+    return json.dumps({"stored": stored, "count": len(stored)})
+
+
+async def _tool_create_idea(
+    project_id: str, user_id: str, title: str, description: str, category: str | None, db: AsyncSession,
+) -> str:
+    """Create an idea from the AI chat tool."""
+    from app.core.background import enqueue
+    from app.services.embedding import get_embedding, embedding_to_json
+    from app.services.feasibility import score_idea_feasibility
+    from app.core.database import async_session
+
+    idea_id = str(uuid.uuid4())
+
+    # Try inline embedding, graceful fallback
+    emb_json = None
+    try:
+        emb = await get_embedding(f"{title}\n{description}")
+        emb_json = embedding_to_json(emb)
+    except Exception as e:
+        logger.warning("create_idea.embed_failed", error=str(e))
+
+    idea = Idea(
+        id=idea_id,
+        project_id=project_id,
+        title=title,
+        description=description,
+        category=category,
+        embedding=emb_json,
+        created_by=user_id,
+    )
+    db.add(idea)
+    await db.flush()
+
+    # Background feasibility scoring
+    async def _run_feasibility(iid: str):
+        async with async_session() as sess:
+            await score_idea_feasibility(iid, sess)
+
+    await enqueue("feasibility", _run_feasibility, idea.id)
+
+    return json.dumps({
+        "status": "created",
+        "idea_id": idea.id,
+        "title": idea.title,
+        "description": idea.description[:200],
+        "category": idea.category,
+    })
 
 
 def _autopilot_dir(work_dir: str | None = None) -> Path:
@@ -426,6 +555,7 @@ async def _execute_tool(
     tool_input: dict,
     project_id: str,
     project_slug: str,
+    user_id: str,
     db: AsyncSession,
 ) -> str:
     """Dispatch a tool call to the appropriate Python function."""
@@ -466,6 +596,22 @@ async def _execute_tool(
                     tool_input.get("project_slug", project_slug),
                     tool_input["query"],
                 )
+            case "create_idea":
+                return await _tool_create_idea(
+                    project_id,
+                    user_id,
+                    tool_input["title"],
+                    tool_input["description"],
+                    tool_input.get("category"),
+                    db,
+                )
+            case "push_to_recall":
+                return await _tool_push_to_recall(
+                    project_id,
+                    project_slug,
+                    tool_input.get("items", []),
+                    db,
+                )
             case "autopilot_status":
                 return _tool_autopilot_status(tool_input.get("work_dir"))
             case "autopilot_read_spec":
@@ -486,36 +632,221 @@ async def _execute_tool(
 
 # ── System prompt ──────────────────────────────────────────────────────────
 
-def _build_system_prompt(project_name: str, project_slug: str, project_id: str) -> str:
-    return (
+async def _build_system_prompt(
+    project_name: str, project_slug: str, project_id: str,
+) -> str:
+    base = (
         f"You are the AI assistant for Foundry, a collaborative software design tool.\n"
         f"You have tools to query project data and knowledge memory.\n"
         f"Current project: {project_name} (slug: {project_slug}, id: {project_id})\n"
         f'Recall domain for this project: foundry:{project_slug}\n'
         f"When tools require project_id, use: {project_id}\n"
         f"When tools require project_slug, use: {project_slug}\n"
+        f"You can create ideas from conversation using the create_idea tool.\n"
+        f"You can save decisions and knowledge to the project memory using push_to_recall.\n"
         f"When the user asks about architecture, use both canvas tools and knowledge tools.\n"
         f"Be concise and helpful. Use markdown for formatting."
     )
+
+    # Enrich with Recall context (cached per conversation start, not every message)
+    try:
+        recall = get_recall_client()
+        context = await recall.get_context(
+            query=f"project {project_name} architecture decisions",
+            max_tokens=1500,
+        )
+        if context:
+            base += f"\n\n## Project Knowledge (from Recall):\n{context}"
+    except Exception:
+        pass  # Recall down — proceed without context
+
+    return base
+
+
+# ── Conversation persistence helpers ──────────────────────────────────────
+
+def _extract_text(content: list[dict] | str) -> str:
+    """Extract plain text from Anthropic message content blocks."""
+    if isinstance(content, str):
+        return content
+    parts = []
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "text":
+            parts.append(block["text"])
+    return "\n".join(parts)
+
+
+def _extract_tool_uses(content: list[dict] | str) -> str | None:
+    """Extract tool uses as JSON string from content blocks."""
+    if isinstance(content, str):
+        return None
+    tools = []
+    for block in content:
+        if isinstance(block, dict) and block.get("type") == "tool_use":
+            tools.append({"name": block["name"], "input": block.get("input", {})})
+    return json.dumps(tools) if tools else None
+
+
+async def _load_conversation_messages(conv: Conversation) -> list[dict]:
+    """Rebuild Anthropic-format messages from persisted conversation."""
+    messages: list[dict] = []
+    for msg in conv.messages:
+        if msg.role == "user":
+            messages.append({"role": "user", "content": msg.content})
+        elif msg.role == "assistant":
+            # Rebuild content blocks
+            content: list[dict] = [{"type": "text", "text": msg.content}]
+            if msg.tool_uses_json:
+                try:
+                    tool_uses = json.loads(msg.tool_uses_json)
+                    for tu in tool_uses:
+                        content.append({
+                            "type": "tool_use",
+                            "id": f"stored_{uuid.uuid4().hex[:12]}",
+                            "name": tu["name"],
+                            "input": tu.get("input", {}),
+                        })
+                except (json.JSONDecodeError, KeyError):
+                    pass
+            messages.append({"role": "assistant", "content": content})
+    return messages
 
 
 # ── Main service ───────────────────────────────────────────────────────────
 
 class ClaudeService:
-    """Manages conversations and Anthropic API calls."""
+    """Manages conversations and Anthropic API calls with SQLite persistence."""
 
     def __init__(self):
-        # Conversation history keyed by "user_id:project_id"
-        self._conversations: dict[str, list[dict]] = {}
+        # In-memory cache: key -> {conversation_id, messages}
+        self._cache: dict[str, dict] = {}
 
     def _key(self, user_id: str, project_id: str) -> str:
         return f"{user_id}:{project_id}"
 
     def get_history(self, user_id: str, project_id: str) -> list[dict]:
-        return self._conversations.get(self._key(user_id, project_id), [])
+        entry = self._cache.get(self._key(user_id, project_id))
+        return entry["messages"] if entry else []
 
-    def clear_history(self, user_id: str, project_id: str) -> None:
-        self._conversations.pop(self._key(user_id, project_id), None)
+    def get_conversation_id(self, user_id: str, project_id: str) -> str | None:
+        entry = self._cache.get(self._key(user_id, project_id))
+        return entry["conversation_id"] if entry else None
+
+    async def clear_history(self, user_id: str, project_id: str) -> None:
+        """Start a new conversation (old one stays in DB)."""
+        self._cache.pop(self._key(user_id, project_id), None)
+
+    async def load_conversation(
+        self, conversation_id: str, user_id: str, project_id: str, db: AsyncSession,
+    ) -> bool:
+        """Load a specific conversation from DB into the cache."""
+        result = await db.execute(
+            select(Conversation)
+            .where(
+                Conversation.id == conversation_id,
+                Conversation.user_id == user_id,
+                Conversation.project_id == project_id,
+            )
+            .options(selectinload(Conversation.messages))
+        )
+        conv = result.scalar_one_or_none()
+        if not conv:
+            return False
+
+        messages = await _load_conversation_messages(conv)
+        key = self._key(user_id, project_id)
+        self._cache[key] = {
+            "conversation_id": conv.id,
+            "messages": messages,
+        }
+        return True
+
+    async def _ensure_conversation(
+        self, user_id: str, project_id: str, first_message: str, model: str, db: AsyncSession,
+    ) -> tuple[str, list[dict]]:
+        """Get or create a conversation. Returns (conversation_id, messages)."""
+        key = self._key(user_id, project_id)
+        entry = self._cache.get(key)
+
+        if entry:
+            return entry["conversation_id"], entry["messages"]
+
+        # Try loading the most recent conversation from DB
+        result = await db.execute(
+            select(Conversation)
+            .where(Conversation.user_id == user_id, Conversation.project_id == project_id)
+            .order_by(Conversation.updated_at.desc())
+            .limit(1)
+            .options(selectinload(Conversation.messages))
+        )
+        conv = result.scalar_one_or_none()
+
+        if conv:
+            messages = await _load_conversation_messages(conv)
+            self._cache[key] = {"conversation_id": conv.id, "messages": messages}
+            return conv.id, messages
+
+        # Create a new conversation
+        title = first_message[:100].strip() or "New conversation"
+        conv = Conversation(
+            id=str(uuid.uuid4()),
+            project_id=project_id,
+            user_id=user_id,
+            title=title,
+            model=model,
+            message_count=0,
+        )
+        db.add(conv)
+        await db.flush()
+
+        messages: list[dict] = []
+        self._cache[key] = {"conversation_id": conv.id, "messages": messages}
+        return conv.id, messages
+
+    async def _persist_message(
+        self, conversation_id: str, role: str, content: list[dict] | str, db: AsyncSession,
+    ) -> None:
+        """Write a message to the DB and update conversation counters."""
+        text = _extract_text(content) if isinstance(content, (list,)) else content
+        tool_uses = _extract_tool_uses(content) if isinstance(content, (list,)) else None
+
+        msg = ConversationMessage(
+            id=str(uuid.uuid4()),
+            conversation_id=conversation_id,
+            role=role,
+            content=text,
+            tool_uses_json=tool_uses,
+        )
+        db.add(msg)
+
+        # Update conversation metadata
+        result = await db.execute(
+            select(Conversation).where(Conversation.id == conversation_id)
+        )
+        conv = result.scalar_one_or_none()
+        if conv:
+            conv.message_count = (conv.message_count or 0) + 1
+        await db.flush()
+
+    async def start_new_conversation(
+        self, user_id: str, project_id: str, db: AsyncSession,
+    ) -> str:
+        """Explicitly start a new conversation. Returns new conversation_id."""
+        key = self._key(user_id, project_id)
+        self._cache.pop(key, None)
+
+        conv = Conversation(
+            id=str(uuid.uuid4()),
+            project_id=project_id,
+            user_id=user_id,
+            title="New conversation",
+            message_count=0,
+        )
+        db.add(conv)
+        await db.flush()
+
+        self._cache[key] = {"conversation_id": conv.id, "messages": []}
+        return conv.id
 
     async def chat(
         self,
@@ -533,34 +864,33 @@ class ClaudeService:
         # Create client: prefer API key, fall back to OAuth token
         if settings.anthropic_api_key:
             client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
-            extra_headers = {}
         else:
             auth = get_claude_auth()
             access_token = await auth.get_access_token()
-            # OAuth tokens require the beta header — this is how Claude Code does it
-            extra_headers = {
-                "anthropic-beta": ClaudeAuth.get_beta_header(),
-            }
             client = anthropic.AsyncAnthropic(
                 auth_token=access_token,
-                default_headers=extra_headers,
+                default_headers={
+                    "anthropic-beta": ClaudeAuth.get_beta_header(),
+                },
             )
 
         chosen_model = model or settings.claude_model
-        system_prompt = _build_system_prompt(project_name, project_slug, project_id)
+
+        # Ensure we have a conversation (creates if needed)
+        conversation_id, messages = await self._ensure_conversation(
+            user_id, project_id, message, chosen_model, db,
+        )
+
+        # Build system prompt (async — includes Recall context on first call)
+        system_prompt = await _build_system_prompt(project_name, project_slug, project_id)
 
         # Build combined tool list: built-in + MCP
         mcp_mgr = get_mcp_manager()
         all_tools = list(TOOLS) + mcp_mgr.get_all_anthropic_tools()
 
-        # Get or init conversation history
-        key = self._key(user_id, project_id)
-        if key not in self._conversations:
-            self._conversations[key] = []
-        messages = self._conversations[key]
-
         # Append user message
         messages.append({"role": "user", "content": message})
+        await self._persist_message(conversation_id, "user", message, db)
 
         max_turns = settings.claude_max_turns
         turn = 0
@@ -579,20 +909,11 @@ class ClaudeService:
                 ) as stream:
                     # Collect the full response for history
                     collected_content = []
-                    tool_uses = []
 
                     async for event in stream:
                         if event.type == "content_block_start":
                             block = event.content_block
-                            if block.type == "text":
-                                # Text block starting
-                                pass
-                            elif block.type == "tool_use":
-                                tool_uses.append({
-                                    "id": block.id,
-                                    "name": block.name,
-                                    "input": {},
-                                })
+                            if block.type == "tool_use":
                                 yield {
                                     "type": "tool_use_start",
                                     "name": block.name,
@@ -603,12 +924,6 @@ class ClaudeService:
                             delta = event.delta
                             if delta.type == "text_delta":
                                 yield {"type": "text", "text": delta.text}
-                            elif delta.type == "input_json_delta":
-                                # Tool input being streamed — we accumulate it
-                                pass
-
-                        elif event.type == "content_block_stop":
-                            pass
 
                     # Get the final message
                     response = await stream.get_final_message()
@@ -628,8 +943,9 @@ class ClaudeService:
                             "input": block.input,
                         })
 
-                # Append assistant message to history
+                # Append assistant message to history and persist
                 messages.append({"role": "assistant", "content": collected_content})
+                await self._persist_message(conversation_id, "assistant", collected_content, db)
 
                 # If stop_reason is "end_turn", we're done
                 if response.stop_reason == "end_turn":
@@ -660,7 +976,7 @@ class ClaudeService:
                             else:
                                 result = await _execute_tool(
                                     block.name, block.input,
-                                    project_id, project_slug, db,
+                                    project_id, project_slug, user_id, db,
                                 )
 
                             tool_results.append({
@@ -676,7 +992,7 @@ class ClaudeService:
                 # Any other stop reason — we're done
                 break
 
-            yield {"type": "done", "model": chosen_model}
+            yield {"type": "done", "model": chosen_model, "conversation_id": conversation_id}
 
         except anthropic.AuthenticationError as e:
             logger.error("claude.auth_error", error=str(e))

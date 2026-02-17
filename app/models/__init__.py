@@ -6,10 +6,12 @@ from app.models.scaffold import ScaffoldJob
 from app.models.knowledge import KnowledgeEntity, KnowledgeRelation
 from app.models.video import VideoRoom
 from app.models.deploy import Environment, DeployJob
+from app.models.conversation import Conversation, ConversationMessage
 
 __all__ = [
     "User", "Project", "ProjectMember", "Canvas", "CanvasComponent",
     "Idea", "IdeaVote", "IdeaComment", "ScaffoldJob",
     "KnowledgeEntity", "KnowledgeRelation", "VideoRoom",
     "Environment", "DeployJob",
+    "Conversation", "ConversationMessage",
 ]

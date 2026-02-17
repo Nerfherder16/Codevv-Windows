@@ -31,4 +31,12 @@ Thumbs.db
 
 # PyInstaller
 *.exe
+
+# Secrets
+.jwt_secret
+
+# Claude
 .claude/settings.local.json
+
+# Autopilot workflow state
+.autopilot/

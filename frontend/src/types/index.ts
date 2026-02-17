@@ -188,6 +188,31 @@ export interface RoomToken {
   url: string;
 }
 
+// Conversations
+export interface Conversation {
+  id: string;
+  project_id: string;
+  user_id: string;
+  title: string;
+  model: string | null;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant";
+  content: string;
+  tool_uses_json: string | null;
+  created_at: string;
+}
+
+export interface ConversationDetail extends Conversation {
+  messages: ConversationMessage[];
+}
+
 // AI Chat
 export interface ChatContext {
   page?: string;

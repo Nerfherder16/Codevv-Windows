@@ -1,10 +1,24 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { X, Send, Trash2, StopCircle, ChevronDown } from "lucide-react";
+import {
+  X,
+  Send,
+  StopCircle,
+  ChevronDown,
+  Plus,
+  MessageSquare,
+  Clock,
+  BookmarkPlus,
+} from "lucide-react";
 import { useAIChat } from "../../contexts/AIChatContext";
 import { useSSE } from "../../hooks/useSSE";
 import { ChatMessageBubble } from "./ChatMessage";
-import type { ChatMessage, AIModel } from "../../types";
+import type {
+  ChatMessage,
+  AIModel,
+  Conversation,
+  ConversationDetail,
+} from "../../types";
 import { api } from "../../lib/api";
 
 export function AIChatPanel() {
@@ -15,16 +29,22 @@ export function AIChatPanel() {
     messages,
     currentModel,
     currentContext,
+    conversationId,
+    conversations,
     setModel,
     addMessage,
     updateLastAssistant,
     clearMessages,
     setSessionId,
+    setConversationId,
+    setConversations,
+    loadConversationMessages,
   } = useAIChat();
 
   const [input, setInput] = useState("");
   const [models, setModels] = useState<AIModel[]>([]);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const [convDropdownOpen, setConvDropdownOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -36,6 +56,23 @@ export function AIChatPanel() {
       .then(setModels)
       .catch(() => {});
   }, [projectId]);
+
+  // Fetch conversation list
+  const fetchConversations = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const convs = await api.get<Conversation[]>(
+        `/projects/${projectId}/conversations`,
+      );
+      setConversations(convs);
+    } catch {
+      // ignore
+    }
+  }, [projectId, setConversations]);
+
+  useEffect(() => {
+    if (isOpen) fetchConversations();
+  }, [isOpen, fetchConversations]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -70,11 +107,18 @@ export function AIChatPanel() {
   );
 
   const handleDone = useCallback(
-    (result: { session_id: string | null; model: string }) => {
+    (result: {
+      session_id: string | null;
+      model: string;
+      conversation_id?: string;
+    }) => {
       updateLastAssistant((prev) => ({ ...prev, streaming: false }));
       if (result.session_id) setSessionId(result.session_id);
+      if (result.conversation_id) setConversationId(result.conversation_id);
+      // Refresh conversation list after a response
+      fetchConversations();
     },
-    [updateLastAssistant, setSessionId],
+    [updateLastAssistant, setSessionId, setConversationId, fetchConversations],
   );
 
   const handleError = useCallback(
@@ -138,7 +182,72 @@ export function AIChatPanel() {
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   };
 
+  const handleNewConversation = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      await api.delete(`/projects/${projectId}/ai/session`);
+    } catch {
+      // session may not exist
+    }
+    clearMessages();
+    setConvDropdownOpen(false);
+    fetchConversations();
+  }, [projectId, clearMessages, fetchConversations]);
+
+  const handleLoadConversation = useCallback(
+    async (convId: string) => {
+      if (!projectId) return;
+      setConvDropdownOpen(false);
+      try {
+        const detail = await api.get<ConversationDetail>(
+          `/projects/${projectId}/conversations/${convId}`,
+        );
+        // Convert persisted messages to ChatMessage format
+        const chatMsgs: ChatMessage[] = detail.messages.map((m) => ({
+          id: m.id,
+          role: m.role as "user" | "assistant",
+          content: m.content,
+          toolUses: m.tool_uses_json ? JSON.parse(m.tool_uses_json) : undefined,
+          timestamp: new Date(m.created_at).getTime(),
+        }));
+        loadConversationMessages(chatMsgs);
+        setConversationId(convId);
+      } catch {
+        // ignore
+      }
+    },
+    [projectId, loadConversationMessages, setConversationId],
+  );
+
+  const handleSaveToMemory = useCallback(() => {
+    if (isStreaming || messages.length === 0) return;
+    const prompt =
+      "Extract and save the key decisions, concepts, and architectural insights from this conversation to Recall using the push_to_recall tool.";
+
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: prompt,
+      timestamp: Date.now(),
+    };
+    addMessage(userMsg);
+
+    const assistantMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: "",
+      toolUses: [],
+      timestamp: Date.now(),
+      streaming: true,
+    };
+    addMessage(assistantMsg);
+
+    send(prompt, currentContext || undefined, currentModel);
+  }, [isStreaming, messages, addMessage, send, currentContext, currentModel]);
+
   const selectedModel = models.find((m) => m.id === currentModel);
+
+  const currentConv = conversations.find((c) => c.id === conversationId);
 
   return (
     <>
@@ -201,13 +310,58 @@ export function AIChatPanel() {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={clearMessages}
-              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              title="Clear chat"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            {/* Conversation selector */}
+            <div className="relative">
+              <button
+                onClick={() => setConvDropdownOpen(!convDropdownOpen)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Conversations"
+              >
+                <MessageSquare className="w-4 h-4" />
+              </button>
+              {convDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-gray-900/95 dark:backdrop-blur-xl border border-gray-200 dark:border-white/[0.08] rounded-xl shadow-lg dark:shadow-black/40 z-50 overflow-hidden max-h-80 flex flex-col">
+                  {/* New conversation button */}
+                  <button
+                    onClick={handleNewConversation}
+                    className="flex items-center gap-2 w-full px-3 py-2.5 text-left text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 border-b border-gray-100 dark:border-white/[0.04] transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New Conversation
+                  </button>
+                  {/* Conversation list */}
+                  <div className="overflow-y-auto flex-1">
+                    {conversations.length === 0 ? (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
+                        No conversations yet
+                      </p>
+                    ) : (
+                      conversations.map((conv) => (
+                        <button
+                          key={conv.id}
+                          onClick={() => handleLoadConversation(conv.id)}
+                          className={`w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-white/[0.05] transition-colors ${
+                            conv.id === conversationId
+                              ? "bg-amber-50 dark:bg-amber-500/10"
+                              : ""
+                          }`}
+                        >
+                          <p className="text-sm text-gray-900 dark:text-white truncate">
+                            {conv.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <Clock className="w-3 h-3 text-gray-400" />
+                            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                              {conv.message_count} messages
+                            </span>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={close}
               className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/[0.05] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -252,13 +406,28 @@ export function AIChatPanel() {
         {/* Footer */}
         <div className="shrink-0 border-t border-gray-200 dark:border-white/[0.06] p-3">
           {/* Context indicator */}
-          {currentContext?.page && (
-            <div className="mb-2 flex items-center gap-1.5">
+          <div className="mb-2 flex items-center gap-1.5">
+            {currentContext?.page && (
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 font-medium">
                 {currentContext.page}
               </span>
-            </div>
-          )}
+            )}
+            {currentConv && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium truncate max-w-[200px]">
+                {currentConv.title}
+              </span>
+            )}
+            {messages.length > 0 && !isStreaming && (
+              <button
+                onClick={handleSaveToMemory}
+                className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 font-medium hover:bg-violet-200 dark:hover:bg-violet-900/40 transition-colors"
+                title="Save conversation insights to project memory"
+              >
+                <BookmarkPlus className="w-3 h-3" />
+                Save to Memory
+              </button>
+            )}
+          </div>
 
           <div className="flex items-end gap-2">
             <textarea

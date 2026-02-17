@@ -20,6 +20,9 @@ from app.schemas.idea import (
 from app.api.routes.projects import get_project_with_access
 from app.services.embedding import get_embedding, embedding_to_json, embedding_from_json, cosine_similarity
 from app.services.feasibility import score_idea_feasibility
+from app.models.knowledge import KnowledgeEntity
+from app.models.project import Project
+from app.services.recall_knowledge import store_knowledge
 import uuid
 import structlog
 
@@ -68,6 +71,44 @@ async def _embed_idea(idea_id: str, text: str):
                 await db.commit()
     except Exception as e:
         logger.warning("idea.embed_failed", idea_id=idea_id, error=str(e))
+
+
+async def _sync_idea_to_knowledge(idea_id: str, project_id: str):
+    """Background task: create KnowledgeEntity + push to Recall when idea is approved."""
+    async with async_session() as db:
+        result = await db.execute(select(Idea).where(Idea.id == idea_id))
+        idea = result.scalar_one_or_none()
+        if not idea:
+            return
+
+        # Create local KnowledgeEntity
+        entity = KnowledgeEntity(
+            project_id=project_id,
+            name=idea.title,
+            entity_type="concept",
+            description=idea.description,
+            source_type="idea",
+            source_id=idea.id,
+        )
+        db.add(entity)
+        await db.flush()
+        await db.commit()
+
+        # Push to Recall
+        try:
+            proj_result = await db.execute(select(Project).where(Project.id == project_id))
+            project = proj_result.scalar_one_or_none()
+            if project:
+                await store_knowledge(
+                    project_slug=project.slug,
+                    name=idea.title,
+                    entity_type="concept",
+                    description=idea.description,
+                    metadata={"source": "idea", "idea_id": idea.id, "category": idea.category or ""},
+                )
+                logger.info("idea.synced_to_recall", idea_id=idea_id)
+        except Exception as e:
+            logger.warning("idea.recall_sync_failed", idea_id=idea_id, error=str(e))
 
 
 @router.post("", response_model=IdeaResponse, status_code=status.HTTP_201_CREATED)
@@ -218,6 +259,10 @@ async def update_idea(
     # Re-embed in background if text changed
     if text_changed:
         await enqueue("re-embed-idea", _embed_idea, idea.id, f"{idea.title}\n{idea.description}")
+
+    # Sync to Knowledge Graph when approved
+    if body.status == "approved":
+        await enqueue("idea-to-kg", _sync_idea_to_knowledge, idea.id, project_id)
 
     return _idea_response(idea)
 
