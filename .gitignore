@@ -31,3 +31,4 @@ Thumbs.db
 
 # PyInstaller
 *.exe
+.claude/settings.local.json
