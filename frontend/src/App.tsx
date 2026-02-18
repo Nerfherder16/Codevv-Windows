@@ -12,6 +12,7 @@ import { ScaffoldPage } from "./pages/ScaffoldPage";
 import { KnowledgeGraphPage } from "./pages/KnowledgeGraphPage";
 import { VideoRoomsPage } from "./pages/VideoRoomsPage";
 import { DeployPage } from "./pages/DeployPage";
+import { WorkspacesPage } from "./pages/WorkspacesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="scaffold" element={<ScaffoldPage />} />
           <Route path="knowledge" element={<KnowledgeGraphPage />} />
           <Route path="rooms" element={<VideoRoomsPage />} />
+          <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="deploy" element={<DeployPage />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>

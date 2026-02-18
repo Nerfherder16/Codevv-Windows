@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp, conversations
+from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp, conversations, workspaces
 import structlog
 
 structlog.configure(
@@ -78,6 +78,7 @@ app.include_router(deploy.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(mcp.router, prefix="/api")
 app.include_router(conversations.router, prefix="/api")
+app.include_router(workspaces.router, prefix="/api")
 
 
 @app.get("/health")
@@ -109,6 +110,25 @@ async def services_status():
         results["recall"] = {"status": "connected", "url": settings.recall_url}
     except Exception as e:
         results["recall"] = {"status": "unavailable", "url": settings.recall_url, "error": str(e)}
+
+    # LiveKit
+    if settings.livekit_url:
+        try:
+            lk_http_url = settings.livekit_url.replace("ws://", "http://").replace("wss://", "https://")
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get(lk_http_url)
+                results["livekit"] = {"status": "connected", "url": settings.livekit_url}
+        except Exception as e:
+            results["livekit"] = {"status": "unavailable", "url": settings.livekit_url, "error": str(e)}
+
+    # code-server
+    if settings.code_server_url:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.get(settings.code_server_url)
+                results["code_server"] = {"status": "connected", "url": settings.code_server_url}
+        except Exception as e:
+            results["code_server"] = {"status": "unavailable", "url": settings.code_server_url, "error": str(e)}
 
     # Claude
     if settings.anthropic_api_key:

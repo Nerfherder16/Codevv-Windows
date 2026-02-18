@@ -7,6 +7,7 @@ import {
   Code2,
   Share2,
   Video,
+  Terminal,
   Rocket,
   Settings,
   ChevronLeft,
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: "scaffold", icon: Code2, label: "Code Scaffold" },
   { to: "knowledge", icon: Share2, label: "Knowledge Graph" },
   { to: "rooms", icon: Video, label: "Video Rooms" },
+  { to: "workspaces", icon: Terminal, label: "Workspaces" },
   { to: "deploy", icon: Rocket, label: "Deploy" },
   { to: "settings", icon: Settings, label: "Settings" },
 ];

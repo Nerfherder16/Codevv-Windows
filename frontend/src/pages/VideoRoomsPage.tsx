@@ -19,10 +19,10 @@ import { PageLoading } from "../components/common/LoadingSpinner";
 import { Modal } from "../components/common/Modal";
 import { relativeTime } from "../lib/utils";
 
-/* ---------- LiveKit not available in desktop mode ---------- */
+/* ---------- LiveKit Video Components ---------- */
 
-const LiveKitRoom = null;
-const VideoConference = null;
+import { LiveKitRoom, VideoConference } from "@livekit/components-react";
+import "@livekit/components-styles";
 
 function VideoRoomView({
   token,
@@ -33,6 +33,45 @@ function VideoRoomView({
   serverUrl: string;
   onLeave: () => void;
 }) {
+  // Desktop-mode fallback when LiveKit is not configured
+  if (token === "desktop-mode") {
+    return (
+      <div className="flex flex-col h-[70vh]">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Video Room
+          </h3>
+          <Button variant="danger" size="sm" onClick={onLeave}>
+            <PhoneOff className="w-4 h-4" />
+            Leave
+          </Button>
+        </div>
+        <div className="flex-1 rounded-lg bg-gray-900 flex items-center justify-center">
+          <div className="text-center text-gray-400 max-w-md">
+            <Video className="w-16 h-16 mx-auto mb-4 opacity-40" />
+            <p className="text-lg font-medium">LiveKit Not Configured</p>
+            <p className="text-sm mt-2">
+              Video rooms require a LiveKit server. Configure{" "}
+              <code className="text-xs bg-gray-800 px-1.5 py-0.5 rounded">
+                LIVEKIT_URL
+              </code>
+              ,{" "}
+              <code className="text-xs bg-gray-800 px-1.5 py-0.5 rounded">
+                LIVEKIT_API_KEY
+              </code>
+              , and{" "}
+              <code className="text-xs bg-gray-800 px-1.5 py-0.5 rounded">
+                LIVEKIT_API_SECRET
+              </code>{" "}
+              in your .env file.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Real LiveKit video conference
   return (
     <div className="flex flex-col h-[70vh]">
       <div className="flex items-center justify-between mb-3">
@@ -44,17 +83,17 @@ function VideoRoomView({
           Leave
         </Button>
       </div>
-      <div className="flex-1 rounded-lg bg-gray-900 flex items-center justify-center">
-        <div className="text-center text-gray-400">
-          <Video className="w-16 h-16 mx-auto mb-4 opacity-40" />
-          <p className="text-lg font-medium">Connected to Room</p>
-          <p className="text-sm mt-1">
-            Video rooms require a LiveKit server. Room metadata saved locally.
-          </p>
-          <p className="text-xs mt-3 font-mono bg-gray-800 rounded px-3 py-1.5 inline-block">
-            Server: {serverUrl}
-          </p>
-        </div>
+      <div className="flex-1 rounded-lg overflow-hidden">
+        <LiveKitRoom
+          serverUrl={serverUrl}
+          token={token}
+          connect={true}
+          onDisconnected={onLeave}
+          data-lk-theme="default"
+          style={{ height: "100%" }}
+        >
+          <VideoConference />
+        </LiveKitRoom>
       </div>
     </div>
   );

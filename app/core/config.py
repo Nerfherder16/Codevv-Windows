@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     # Recall
     recall_url: str = "http://192.168.50.19:8200"
 
+    # LiveKit
+    livekit_url: str = ""
+    livekit_api_key: str = ""
+    livekit_api_secret: str = ""
+
+    # code-server
+    code_server_url: str = ""
+
     # Claude
     anthropic_api_key: str = ""  # Set via ANTHROPIC_API_KEY env var or .env
     claude_model: str = "claude-opus-4-6"

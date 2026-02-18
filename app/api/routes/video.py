@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
+from app.core.config import get_settings
 from app.core.security import get_current_user
 from app.models.user import User
 from app.models.video import VideoRoom
@@ -10,6 +11,7 @@ from app.api.routes.projects import get_project_with_access
 import uuid
 
 router = APIRouter(prefix="/projects/{project_id}/rooms", tags=["video"])
+settings = get_settings()
 
 
 @router.post("", response_model=RoomResponse, status_code=status.HTTP_201_CREATED)
@@ -87,7 +89,7 @@ async def get_room_token(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Return a placeholder token for desktop mode (no LiveKit server)."""
+    """Generate a LiveKit JWT token, or return desktop-mode fallback."""
     await get_project_with_access(project_id, user, db)
 
     result = await db.execute(
@@ -103,6 +105,31 @@ async def get_room_token(
     if not room.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Room is not active")
 
+    # Real LiveKit token if configured
+    if settings.livekit_api_key and settings.livekit_api_secret:
+        from livekit import api as lk_api
+
+        token = (
+            lk_api.AccessToken(settings.livekit_api_key, settings.livekit_api_secret)
+            .with_identity(str(user.id))
+            .with_name(user.display_name)
+            .with_grants(
+                lk_api.VideoGrants(
+                    room_join=True,
+                    room=room.livekit_room_name,
+                    can_publish=True,
+                    can_subscribe=True,
+                )
+            )
+        )
+
+        return RoomTokenResponse(
+            token=token.to_jwt(),
+            room_name=room.livekit_room_name,
+            url=settings.livekit_url,
+        )
+
+    # Desktop-mode fallback
     return RoomTokenResponse(
         token="desktop-mode",
         room_name=room.livekit_room_name,
