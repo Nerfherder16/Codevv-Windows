@@ -44,3 +44,6 @@ Thumbs.db
 
 # Plan files
 updatebuild1
+
+# Playwright MCP temp files
+.playwright-mcp/

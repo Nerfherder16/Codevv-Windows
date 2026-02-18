@@ -24,6 +24,7 @@ export default function App() {
           <Route index element={<ProjectOverviewPage />} />
           <Route path="canvas" element={<CanvasPage />} />
           <Route path="canvas/:canvasId" element={<CanvasEditorPage />} />
+          <Route path="canvases/:canvasId" element={<CanvasEditorPage />} />
           <Route path="ideas" element={<IdeasPage />} />
           <Route path="ideas/:ideaId" element={<IdeaDetailPage />} />
           <Route path="scaffold" element={<ScaffoldPage />} />
