@@ -47,3 +47,9 @@ updatebuild1
 
 # Playwright MCP temp files
 .playwright-mcp/
+
+# Claude Flow
+.claude-flow/
+
+# Design docs (local scratch)
+design.md
