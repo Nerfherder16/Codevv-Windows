@@ -101,9 +101,13 @@ export function ProjectListPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* ── Header bar ─────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-gray-200/80 dark:border-white/[0.04] bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-24 flex items-center justify-between">
           {/* Logo */}
-          <img src="/codevvlogo.png" alt="Codevv" className="h-12 rounded-lg" />
+          <img
+            src="/codevvtransparentlogo.webp"
+            alt="Codevv"
+            className="h-36 -my-6"
+          />
 
           {/* Right controls */}
           <div className="flex items-center gap-1.5">
@@ -305,11 +309,7 @@ export function ProjectListPage() {
       <footer className="max-w-6xl mx-auto px-6 py-8 border-t border-gray-200/50 dark:border-white/[0.03]">
         <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-600">
           <div className="flex items-center gap-2">
-            <img
-              src="/codevvicon.png"
-              alt=""
-              className="w-4 h-4 rounded opacity-50"
-            />
+            <img src="/codevvtrans.png" alt="" className="w-4 h-4 opacity-50" />
             <span>Codevv</span>
           </div>
           <span>AI-assisted software design</span>

@@ -87,9 +87,9 @@ export function LoginPage() {
           {/* Logo — big, front and center */}
           <div className="text-center mb-10">
             <img
-              src="/codevvlogo.png"
+              src="/codevvtransparentlogo.webp"
               alt="Codevv"
-              className="h-24 mx-auto mb-6 rounded-2xl"
+              className="h-48 mx-auto mb-6"
             />
             <p className="text-gray-500 dark:text-gray-400 text-sm">
               {mode === "login"

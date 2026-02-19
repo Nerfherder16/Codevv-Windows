@@ -51,11 +51,7 @@ export function Sidebar() {
     >
       {/* Header */}
       <div className="flex items-center gap-2.5 p-4 border-b border-gray-200/80 dark:border-white/[0.04]">
-        <img
-          src="/codevvicon.png"
-          alt="Codevv"
-          className="w-8 h-8 shrink-0 rounded-lg"
-        />
+        <img src="/codevvtrans.png" alt="Codevv" className="w-8 h-8 shrink-0" />
         {!collapsed && (
           <span className="font-bold text-lg tracking-tight truncate gradient-text">
             Codevv
