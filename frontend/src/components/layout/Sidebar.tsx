@@ -12,19 +12,63 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
+  GitBranch,
+  Activity,
+  Coins,
+  ClipboardList,
+  Shield,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
-const NAV_ITEMS = [
-  { to: "", icon: LayoutDashboard, label: "Overview", end: true },
-  { to: "canvas", icon: Pencil, label: "Canvas" },
-  { to: "ideas", icon: Lightbulb, label: "Idea Vault" },
-  { to: "scaffold", icon: Code2, label: "Code Scaffold" },
-  { to: "knowledge", icon: Share2, label: "Knowledge Graph" },
-  { to: "rooms", icon: Video, label: "Video Rooms" },
-  { to: "workspaces", icon: Terminal, label: "Workspaces" },
-  { to: "deploy", icon: Rocket, label: "Deploy" },
-  { to: "settings", icon: Settings, label: "Settings" },
+interface NavItem {
+  to: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  end?: boolean;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    title: "Core",
+    items: [
+      { to: "", icon: LayoutDashboard, label: "Overview", end: true },
+      { to: "canvas", icon: Pencil, label: "Canvas" },
+      { to: "ideas", icon: Lightbulb, label: "Idea Vault" },
+      { to: "knowledge", icon: Share2, label: "Knowledge Graph" },
+      { to: "rules", icon: BookOpen, label: "Business Rules" },
+    ],
+  },
+  {
+    title: "Build",
+    items: [
+      { to: "scaffold", icon: Code2, label: "Code Scaffold" },
+      { to: "pipeline", icon: Activity, label: "Agent Pipeline" },
+      { to: "dependencies", icon: GitBranch, label: "Dependencies" },
+    ],
+  },
+  {
+    title: "Platform",
+    items: [
+      { to: "deploy", icon: Rocket, label: "Deploy" },
+      { to: "solana", icon: Coins, label: "Blockchain" },
+      { to: "rooms", icon: Video, label: "Video Rooms" },
+      { to: "workspaces", icon: Terminal, label: "Workspaces" },
+    ],
+  },
+  {
+    title: "Operations",
+    items: [
+      { to: "audit", icon: ClipboardList, label: "Audit Prep" },
+      { to: "compliance", icon: Shield, label: "Launch Readiness" },
+      { to: "settings", icon: Settings, label: "Settings" },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -62,37 +106,53 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 px-2 overflow-y-auto space-y-1">
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={`${basePath}/${item.to}`}
-            end={item.end}
-            className={({ isActive }) =>
-              cn(
-                "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
-                isActive
-                  ? "nav-active text-cyan-400 dark:text-cyan-400 font-medium"
-                  : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.04]",
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {/* Active indicator bar */}
-                {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.4)]" />
-                )}
-                <item.icon
-                  className={cn(
-                    "w-5 h-5 shrink-0 transition-colors",
-                    isActive && "drop-shadow-[0_0_6px_rgba(56,189,248,0.3)]",
-                  )}
-                />
-                {!collapsed && <span className="truncate">{item.label}</span>}
-              </>
+      <nav className="flex-1 py-3 px-2 overflow-y-auto space-y-4">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title}>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-400 dark:text-gray-500 px-3 mb-1.5">
+                {section.title}
+              </p>
             )}
-          </NavLink>
+            {collapsed && (
+              <div className="mx-3 mb-1.5 border-t border-gray-200/60 dark:border-white/[0.04]" />
+            )}
+            <div className="space-y-0.5">
+              {section.items.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={`${basePath}/${item.to}`}
+                  end={item.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200",
+                      isActive
+                        ? "nav-active text-cyan-400 dark:text-cyan-400 font-medium"
+                        : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.04]",
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.4)]" />
+                      )}
+                      <item.icon
+                        className={cn(
+                          "w-5 h-5 shrink-0 transition-colors",
+                          isActive &&
+                            "drop-shadow-[0_0_6px_rgba(56,189,248,0.3)]",
+                        )}
+                      />
+                      {!collapsed && (
+                        <span className="truncate">{item.label}</span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 

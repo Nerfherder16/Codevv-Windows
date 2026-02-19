@@ -299,3 +299,151 @@ export interface DeployJob {
   created_by: string;
   created_at: string;
 }
+
+// Business Rules (Recall proxy)
+export interface RecallMemory {
+  id: string;
+  content: string;
+  domain: string;
+  tags: string[];
+  importance: number;
+  pinned: boolean;
+  memory_type: string;
+  created_at: string;
+}
+
+// Dependency Map
+export interface DependencyNode {
+  id: string;
+  name: string;
+  component_type: string;
+  tech_stack: string | null;
+  canvas_id: string | null;
+}
+
+export interface DependencyEdge {
+  source: string;
+  target: string;
+  relation_type: string;
+  weight: number | null;
+}
+
+export interface DependencyGraph {
+  nodes: DependencyNode[];
+  edges: DependencyEdge[];
+  stats: {
+    node_count: number;
+    edge_count: number;
+    max_depth: number;
+  };
+}
+
+// Agent Pipeline
+export type AgentRunStatus = "queued" | "running" | "completed" | "failed";
+export type AgentRunType = "scaffold" | "feasibility" | "embedding" | "custom";
+
+export interface AgentRun {
+  id: string;
+  project_id: string;
+  agent_type: AgentRunType;
+  status: AgentRunStatus;
+  input_json: Record<string, unknown> | null;
+  output_json: Record<string, unknown> | null;
+  error_message: string | null;
+  findings_count: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+export interface AgentFinding {
+  id: string;
+  run_id: string;
+  severity: "info" | "warning" | "error" | "critical";
+  title: string;
+  description: string | null;
+  file_path: string | null;
+  created_at: string;
+}
+
+// Solana Blockchain
+export interface SolanaWatchlistItem {
+  id: string;
+  project_id: string;
+  label: string;
+  address: string;
+  network: string;
+  balance?: number;
+  created_by: string;
+  created_at: string;
+}
+
+export interface SolanaTransaction {
+  signature: string;
+  slot: number;
+  block_time: number | null;
+  success: boolean;
+  fee: number;
+}
+
+// Audit Prep
+export interface AuditReport {
+  id: string;
+  project_id: string;
+  title: string;
+  report_json: { sections: AuditSection[] };
+  status: "generating" | "ready" | "archived";
+  generated_by: string;
+  created_at: string;
+}
+
+export interface AuditSection {
+  name: string;
+  items: string[];
+  score: number;
+  notes: string | null;
+}
+
+// Compliance / Launch Readiness
+export type ComplianceCheckStatus =
+  | "not_started"
+  | "in_progress"
+  | "passed"
+  | "failed"
+  | "waived";
+
+export interface ComplianceCheck {
+  id: string;
+  checklist_id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  status: ComplianceCheckStatus;
+  evidence_url: string | null;
+  notes: string | null;
+  assigned_to: string | null;
+  updated_by: string | null;
+  updated_at: string;
+  created_at: string;
+}
+
+export interface ComplianceChecklist {
+  id: string;
+  project_id: string;
+  name: string;
+  description: string | null;
+  checks_count: number;
+  pass_rate: number;
+  created_by: string;
+  created_at: string;
+}
+
+export interface LaunchReadiness {
+  overall_score: number;
+  category_scores: Record<string, number>;
+  blockers: ComplianceCheck[];
+  total: number;
+  passed: number;
+  failed: number;
+}

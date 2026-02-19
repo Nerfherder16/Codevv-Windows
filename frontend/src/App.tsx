@@ -14,6 +14,12 @@ import { VideoRoomsPage } from "./pages/VideoRoomsPage";
 import { DeployPage } from "./pages/DeployPage";
 import { WorkspacesPage } from "./pages/WorkspacesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { RulesPage } from "./pages/RulesPage";
+import { DependencyMapPage } from "./pages/DependencyMapPage";
+import { PipelinePage } from "./pages/PipelinePage";
+import { SolanaPage } from "./pages/SolanaPage";
+import { AuditPage } from "./pages/AuditPage";
+import { CompliancePage } from "./pages/CompliancePage";
 
 export default function App() {
   return (
@@ -34,6 +40,12 @@ export default function App() {
           <Route path="workspaces" element={<WorkspacesPage />} />
           <Route path="deploy" element={<DeployPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="rules" element={<RulesPage />} />
+          <Route path="dependencies" element={<DependencyMapPage />} />
+          <Route path="pipeline" element={<PipelinePage />} />
+          <Route path="solana" element={<SolanaPage />} />
+          <Route path="audit" element={<AuditPage />} />
+          <Route path="compliance" element={<CompliancePage />} />
         </Route>
       </Routes>
     </ProtectedRoute>
