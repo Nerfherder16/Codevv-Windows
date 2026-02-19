@@ -101,12 +101,12 @@ export function ProjectListPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* ── Header bar ─────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-gray-200/80 dark:border-white/[0.04] bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-6 h-24 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-28 flex items-center justify-between">
           {/* Logo */}
           <img
             src="/codevvtransparentlogo.webp"
             alt="Codevv"
-            className="h-48 -my-12"
+            className="h-56 -my-14"
           />
 
           {/* Right controls */}
