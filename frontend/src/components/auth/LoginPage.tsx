@@ -67,7 +67,7 @@ export function LoginPage() {
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <img
-            src="/codevvlogo.png"
+            src="/codevvtrans.png"
             alt="Codevv"
             className="w-48 mx-auto mb-4"
           />
