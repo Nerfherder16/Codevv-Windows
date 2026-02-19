@@ -20,6 +20,12 @@ from app.api.routes import (
     mcp,
     conversations,
     workspaces,
+    rules,
+    dependencies,
+    pipeline,
+    solana,
+    audit,
+    compliance,
 )
 import structlog
 
@@ -93,6 +99,12 @@ app.include_router(ai.router, prefix="/api")
 app.include_router(mcp.router, prefix="/api")
 app.include_router(conversations.router, prefix="/api")
 app.include_router(workspaces.router, prefix="/api")
+app.include_router(rules.router, prefix="/api")
+app.include_router(dependencies.router, prefix="/api")
+app.include_router(pipeline.router, prefix="/api")
+app.include_router(solana.router, prefix="/api")
+app.include_router(audit.router, prefix="/api")
+app.include_router(compliance.router, prefix="/api")
 
 
 @app.get("/health")

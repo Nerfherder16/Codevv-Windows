@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # Recall
     recall_url: str = "http://192.168.50.19:8200"
 
+    # Solana
+    solana_rpc_url: str = "https://api.devnet.solana.com"
+
     # LiveKit
     livekit_url: str = ""
     livekit_api_key: str = ""
