@@ -30,11 +30,11 @@ const LINK_COLORS: Record<string, QuickLinkColor & { stat: string }> = {
     count: "text-emerald-700 dark:text-emerald-300",
     stat: "stat-emerald",
   },
-  amber: {
-    bg: "bg-amber-50 stat-amber",
-    icon: "text-amber-600 dark:text-amber-400",
-    count: "text-amber-700 dark:text-amber-300",
-    stat: "stat-amber",
+  cyan: {
+    bg: "bg-cyan-50 stat-cyan",
+    icon: "text-cyan-600 dark:text-cyan-400",
+    count: "text-cyan-700 dark:text-cyan-300",
+    stat: "stat-cyan",
   },
   violet: {
     bg: "bg-violet-50 stat-violet",
@@ -130,8 +130,7 @@ export function ProjectOverviewPage() {
   }
 
   const roleColors: Record<string, string> = {
-    owner:
-      "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300",
+    owner: "bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300",
     editor: "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300",
     viewer: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
   };
@@ -161,7 +160,7 @@ export function ProjectOverviewPage() {
           icon={<Lightbulb className="w-6 h-6" />}
           label="Ideas"
           count={ideas.length}
-          color="amber"
+          color="cyan"
           onClick={() => navigate(`/projects/${projectId}/ideas`)}
         />
         <QuickLink
@@ -191,7 +190,7 @@ export function ProjectOverviewPage() {
             {project.members.map((member) => (
               <Card key={member.id} className="flex items-center gap-3">
                 {/* Avatar placeholder */}
-                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-amber-500/10 text-amber-500 text-sm font-semibold shrink-0">
+                <div className="flex items-center justify-center w-9 h-9 rounded-full bg-cyan-500/10 text-cyan-400 text-sm font-semibold shrink-0">
                   {member.display_name
                     .split(" ")
                     .map((w) => w[0])

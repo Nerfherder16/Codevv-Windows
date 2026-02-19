@@ -18,7 +18,7 @@ export function TopBar() {
           onClick={toggleChat}
           className={`p-2 rounded-xl transition-all duration-200 ${
             chatOpen
-              ? "bg-amber-500/15 text-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.15)]"
+              ? "bg-cyan-500/15 text-cyan-400 shadow-[0_0_12px_rgba(56,189,248,0.15)]"
               : "text-gray-400 dark:text-gray-500 hover:bg-white/[0.05] hover:text-gray-200"
           }`}
           title="AI Assistant"
@@ -48,7 +48,7 @@ export function TopBar() {
           <>
             {/* User avatar */}
             <div className="flex items-center gap-2.5 text-sm ml-1">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-amber-500/20">
+              <div className="w-8 h-8 rounded-xl bg-cyan-500 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-cyan-500/20">
                 {user.display_name?.charAt(0)?.toUpperCase() || "U"}
               </div>
               <span className="hidden sm:inline text-gray-600 dark:text-gray-400 font-medium">

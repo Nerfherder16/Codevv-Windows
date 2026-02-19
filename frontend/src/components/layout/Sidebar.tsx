@@ -49,14 +49,16 @@ export function Sidebar() {
         collapsed ? "w-[68px]" : "w-60",
       )}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2.5 p-4 border-b border-gray-200/80 dark:border-white/[0.04]">
-        <img src="/codevvtrans.png" alt="Codevv" className="w-8 h-8 shrink-0" />
-        {!collapsed && (
-          <span className="font-bold text-lg tracking-tight truncate gradient-text">
-            Codevv
-          </span>
-        )}
+      {/* Header — large proud logo */}
+      <div className="flex items-center justify-center border-b border-gray-200/80 dark:border-white/[0.04] overflow-hidden">
+        <img
+          src="/codevvtrans.png"
+          alt="Codevv"
+          className={cn(
+            "shrink-0 transition-all duration-300",
+            collapsed ? "w-10 h-10 my-3" : "w-36 h-36 -my-6",
+          )}
+        />
       </div>
 
       {/* Nav */}
