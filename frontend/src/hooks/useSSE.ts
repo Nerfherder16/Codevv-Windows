@@ -27,7 +27,7 @@ export function useSSE(projectId: string, callbacks: SSECallbacks) {
       setIsStreaming(true);
 
       try {
-        const token = localStorage.getItem("bh-token");
+        const token = localStorage.getItem("cv-token");
         const headers: Record<string, string> = {
           "Content-Type": "application/json",
         };

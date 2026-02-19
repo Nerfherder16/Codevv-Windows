@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(u);
     } catch {
       setUser(null);
-      localStorage.removeItem("bh-token");
+      localStorage.removeItem("cv-token");
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
-    localStorage.setItem("bh-token", res.access_token);
+    localStorage.setItem("cv-token", res.access_token);
     await fetchUser();
   };
 
@@ -61,12 +61,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
       display_name: displayName,
     });
-    localStorage.setItem("bh-token", res.access_token);
+    localStorage.setItem("cv-token", res.access_token);
     await fetchUser();
   };
 
   const logout = () => {
-    localStorage.removeItem("bh-token");
+    localStorage.removeItem("cv-token");
     setUser(null);
   };
 

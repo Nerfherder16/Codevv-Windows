@@ -1,5 +1,4 @@
 import sys
-import os
 from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -8,7 +7,20 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.api.routes import auth, projects, canvases, ideas, scaffold, knowledge, video, deploy, ai, mcp, conversations, workspaces
+from app.api.routes import (
+    auth,
+    projects,
+    canvases,
+    ideas,
+    scaffold,
+    knowledge,
+    video,
+    deploy,
+    ai,
+    mcp,
+    conversations,
+    workspaces,
+)
 import structlog
 
 structlog.configure(
@@ -38,6 +50,7 @@ async def lifespan(app: FastAPI):
     # Check Recall health
     try:
         from app.core.recall_client import get_recall_client
+
         recall = get_recall_client()
         health = await recall.health()
         logger.info("recall.connected", status=health.get("status"))
@@ -49,6 +62,7 @@ async def lifespan(app: FastAPI):
     # Shutdown MCP connections
     try:
         from app.services.mcp_manager import get_mcp_manager
+
         await get_mcp_manager().shutdown()
     except Exception as e:
         logger.warning("mcp.shutdown_error", error=str(e))
@@ -98,10 +112,14 @@ async def services_status():
     # Ollama
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(f"{settings.ollama_url}/api/tags")
+            await client.get(f"{settings.ollama_url}/api/tags")
             results["ollama"] = {"status": "connected", "url": settings.ollama_url}
     except Exception as e:
-        results["ollama"] = {"status": "unavailable", "url": settings.ollama_url, "error": str(e)}
+        results["ollama"] = {
+            "status": "unavailable",
+            "url": settings.ollama_url,
+            "error": str(e),
+        }
 
     # Recall
     try:
@@ -109,26 +127,46 @@ async def services_status():
         await recall.health()
         results["recall"] = {"status": "connected", "url": settings.recall_url}
     except Exception as e:
-        results["recall"] = {"status": "unavailable", "url": settings.recall_url, "error": str(e)}
+        results["recall"] = {
+            "status": "unavailable",
+            "url": settings.recall_url,
+            "error": str(e),
+        }
 
     # LiveKit
     if settings.livekit_url:
         try:
-            lk_http_url = settings.livekit_url.replace("ws://", "http://").replace("wss://", "https://")
+            lk_http_url = settings.livekit_url.replace("ws://", "http://").replace(
+                "wss://", "https://"
+            )
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(lk_http_url)
-                results["livekit"] = {"status": "connected", "url": settings.livekit_url}
+                await client.get(lk_http_url)
+                results["livekit"] = {
+                    "status": "connected",
+                    "url": settings.livekit_url,
+                }
         except Exception as e:
-            results["livekit"] = {"status": "unavailable", "url": settings.livekit_url, "error": str(e)}
+            results["livekit"] = {
+                "status": "unavailable",
+                "url": settings.livekit_url,
+                "error": str(e),
+            }
 
     # code-server
     if settings.code_server_url:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                resp = await client.get(settings.code_server_url)
-                results["code_server"] = {"status": "connected", "url": settings.code_server_url}
+                await client.get(settings.code_server_url)
+                results["code_server"] = {
+                    "status": "connected",
+                    "url": settings.code_server_url,
+                }
         except Exception as e:
-            results["code_server"] = {"status": "unavailable", "url": settings.code_server_url, "error": str(e)}
+            results["code_server"] = {
+                "status": "unavailable",
+                "url": settings.code_server_url,
+                "error": str(e),
+            }
 
     # Claude
     if settings.anthropic_api_key:
@@ -150,7 +188,9 @@ async def services_status():
 # Serve frontend static files
 static_dir = get_static_dir()
 if static_dir.exists():
-    app.mount("/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets")
+    app.mount(
+        "/assets", StaticFiles(directory=str(static_dir / "assets")), name="assets"
+    )
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
@@ -170,7 +210,7 @@ def main():
     if settings.open_browser:
         threading.Timer(1.5, lambda: webbrowser.open(url)).start()
 
-    print(f"\n  Foundry running at {url}\n")
+    print(f"\n  Codevv running at {url}\n")
     uvicorn.run(app, host=settings.host, port=settings.port, log_level="info")
 
 

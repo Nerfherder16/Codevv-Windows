@@ -29,9 +29,13 @@ def create_access_token(user_id: str, email: str) -> str:
 
 def decode_token(token: str) -> dict:
     try:
-        return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        return jwt.decode(
+            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+        )
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
 
 
 async def get_current_user(
@@ -42,12 +46,14 @@ async def get_current_user(
 
     # Desktop app: auto-create/return local user if no token
     if token is None:
-        result = await db.execute(select(User).where(User.email == "local@foundry.local"))
+        result = await db.execute(
+            select(User).where(User.email == "local@codevv.local")
+        )
         user = result.scalar_one_or_none()
         if not user:
             user = User(
                 id=str(uuid.uuid4()),
-                email="local@foundry.local",
+                email="local@codevv.local",
                 display_name="Local User",
                 password_hash=hash_password("local"),
             )
@@ -58,10 +64,14 @@ async def get_current_user(
     payload = decode_token(token)
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload"
+        )
 
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
     return user

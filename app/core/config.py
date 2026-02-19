@@ -1,5 +1,4 @@
 import sys
-import os
 import secrets
 from pathlib import Path
 from pydantic_settings import BaseSettings
@@ -28,10 +27,10 @@ def _get_or_create_jwt_secret() -> str:
 
 class Settings(BaseSettings):
     # Database — SQLite, file next to exe
-    database_url: str = f"sqlite+aiosqlite:///{get_data_dir() / 'foundry.db'}"
+    database_url: str = f"sqlite+aiosqlite:///{get_data_dir() / 'codevv.db'}"
 
     # Auth
-    jwt_secret: str = "foundry-local-secret"
+    jwt_secret: str = "codevv-local-secret"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 43200  # 30 days for desktop
 
@@ -59,7 +58,7 @@ class Settings(BaseSettings):
     claude_max_turns: int = 25
 
     # App
-    app_name: str = "Foundry"
+    app_name: str = "Codevv"
     host: str = "127.0.0.1"
     port: int = 8000
     open_browser: bool = True
@@ -69,7 +68,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _auto_jwt_secret(self) -> "Settings":
         """Replace the hardcoded default with a persistent random secret."""
-        if self.jwt_secret == "foundry-local-secret":
+        if self.jwt_secret == "codevv-local-secret":
             self.jwt_secret = _get_or_create_jwt_secret()
         return self
 

@@ -29,7 +29,7 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem("bh-sidebar") !== "expanded",
+    () => localStorage.getItem("cv-sidebar") !== "expanded",
   );
   const { projectId } = useParams();
   const basePath = projectId ? `/projects/${projectId}` : "/";
@@ -37,7 +37,7 @@ export function Sidebar() {
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
-    localStorage.setItem("bh-sidebar", next ? "collapsed" : "expanded");
+    localStorage.setItem("cv-sidebar", next ? "collapsed" : "expanded");
   };
 
   return (
@@ -52,13 +52,13 @@ export function Sidebar() {
       {/* Header */}
       <div className="flex items-center gap-2.5 p-4 border-b border-gray-200/80 dark:border-white/[0.04]">
         <img
-          src="/foundrylogo.png"
-          alt="Foundry"
+          src="/codevvlogo.png"
+          alt="Codevv"
           className="w-8 h-8 shrink-0 rounded-lg"
         />
         {!collapsed && (
           <span className="font-bold text-lg tracking-tight truncate gradient-text">
-            Foundry
+            Codevv
           </span>
         )}
       </div>

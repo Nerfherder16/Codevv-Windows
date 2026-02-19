@@ -25,7 +25,7 @@ async def create_room(
     await get_project_with_access(project_id, user, db, min_role="editor")
 
     room_id = str(uuid.uuid4())
-    livekit_room_name = f"bh-{project_id[:8]}-{uuid.uuid4().hex[:8]}"
+    livekit_room_name = f"cv-{project_id[:8]}-{uuid.uuid4().hex[:8]}"
 
     room = VideoRoom(
         id=room_id,
@@ -62,7 +62,7 @@ async def list_rooms(
     result = await db.execute(
         select(VideoRoom).where(
             VideoRoom.project_id == project_id,
-            VideoRoom.is_active == True,
+            VideoRoom.is_active.is_(True),
         )
     )
     rooms = result.scalars().all()
@@ -100,10 +100,14 @@ async def get_room_token(
     )
     room = result.scalar_one_or_none()
     if not room:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Room not found"
+        )
 
     if not room.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Room is not active")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Room is not active"
+        )
 
     # Real LiveKit token if configured
     if settings.livekit_api_key and settings.livekit_api_secret:
@@ -155,7 +159,9 @@ async def close_room(
     )
     room = result.scalar_one_or_none()
     if not room:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Room not found"
+        )
 
     room.is_active = False
     await db.flush()

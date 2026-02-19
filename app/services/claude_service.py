@@ -17,7 +17,7 @@ from app.core.claude_auth import get_claude_auth, ClaudeAuth
 from app.core.config import get_settings
 from app.core.recall_client import get_recall_client
 from app.services.mcp_manager import get_mcp_manager
-from app.models.project import Project, ProjectMember
+from app.models.project import Project
 from app.models.canvas import Canvas, CanvasComponent
 from app.models.idea import Idea
 from app.models.scaffold import ScaffoldJob
@@ -70,7 +70,10 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "project_id": {"type": "string"},
-                "status": {"type": "string", "description": "Filter by status. Optional."},
+                "status": {
+                    "type": "string",
+                    "description": "Filter by status. Optional.",
+                },
             },
             "required": ["project_id"],
         },
@@ -129,8 +132,14 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "title": {"type": "string", "description": "Short title for the idea"},
-                "description": {"type": "string", "description": "Detailed description of the idea"},
-                "category": {"type": "string", "description": "Optional category (e.g. feature, improvement, research)"},
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the idea",
+                },
+                "category": {
+                    "type": "string",
+                    "description": "Optional category (e.g. feature, improvement, research)",
+                },
             },
             "required": ["title", "description"],
         },
@@ -147,10 +156,19 @@ TOOLS = [
                     "items": {
                         "type": "object",
                         "properties": {
-                            "content": {"type": "string", "description": "The knowledge content to store"},
+                            "content": {
+                                "type": "string",
+                                "description": "The knowledge content to store",
+                            },
                             "entity_type": {
                                 "type": "string",
-                                "enum": ["decision", "concept", "technology", "requirement", "architecture"],
+                                "enum": [
+                                    "decision",
+                                    "concept",
+                                    "technology",
+                                    "requirement",
+                                    "architecture",
+                                ],
                                 "description": "Type of knowledge entity",
                             },
                         },
@@ -167,7 +185,10 @@ TOOLS = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "work_dir": {"type": "string", "description": "Working directory containing .autopilot/. Defaults to current dir."},
+                "work_dir": {
+                    "type": "string",
+                    "description": "Working directory containing .autopilot/. Defaults to current dir.",
+                },
             },
         },
     },
@@ -198,7 +219,10 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "work_dir": {"type": "string"},
-                "tail_lines": {"type": "integer", "description": "Number of lines from end. Default 50."},
+                "tail_lines": {
+                    "type": "integer",
+                    "description": "Number of lines from end. Default 50.",
+                },
             },
         },
     },
@@ -206,6 +230,7 @@ TOOLS = [
 
 
 # ── Tool execution (direct Python, same process) ──────────────────────────
+
 
 def _safe_json(val: str | None) -> dict | list | None:
     """Parse a JSON text column, returning None on failure."""
@@ -227,86 +252,107 @@ async def _tool_get_project_summary(project_id: str, db: AsyncSession) -> str:
     if not project:
         return json.dumps({"error": "Project not found"})
 
-    canvas_count = (await db.execute(
-        select(func.count()).select_from(Canvas).where(Canvas.project_id == project_id)
-    )).scalar() or 0
+    canvas_count = (
+        await db.execute(
+            select(func.count())
+            .select_from(Canvas)
+            .where(Canvas.project_id == project_id)
+        )
+    ).scalar() or 0
 
-    idea_count = (await db.execute(
-        select(func.count()).select_from(Idea).where(Idea.project_id == project_id)
-    )).scalar() or 0
+    idea_count = (
+        await db.execute(
+            select(func.count()).select_from(Idea).where(Idea.project_id == project_id)
+        )
+    ).scalar() or 0
 
-    return json.dumps({
-        "id": project.id,
-        "name": project.name,
-        "slug": project.slug,
-        "description": project.description,
-        "member_count": len(project.members),
-        "canvas_count": canvas_count,
-        "idea_count": idea_count,
-        "created_at": project.created_at.isoformat() if project.created_at else None,
-    })
+    return json.dumps(
+        {
+            "id": project.id,
+            "name": project.name,
+            "slug": project.slug,
+            "description": project.description,
+            "member_count": len(project.members),
+            "canvas_count": canvas_count,
+            "idea_count": idea_count,
+            "created_at": project.created_at.isoformat()
+            if project.created_at
+            else None,
+        }
+    )
 
 
-async def _tool_get_canvas_components(project_id: str, canvas_id: str, db: AsyncSession) -> str:
+async def _tool_get_canvas_components(
+    project_id: str, canvas_id: str, db: AsyncSession
+) -> str:
     result = await db.execute(
         select(CanvasComponent).where(
             CanvasComponent.canvas_id == canvas_id,
         )
     )
     components = result.scalars().all()
-    return json.dumps([
-        {
-            "id": c.id,
-            "shape_id": c.shape_id,
-            "name": c.name,
-            "component_type": c.component_type,
-            "tech_stack": c.tech_stack,
-            "description": c.description,
-            "metadata": _safe_json(c.metadata_json),
-        }
-        for c in components
-    ])
+    return json.dumps(
+        [
+            {
+                "id": c.id,
+                "shape_id": c.shape_id,
+                "name": c.name,
+                "component_type": c.component_type,
+                "tech_stack": c.tech_stack,
+                "description": c.description,
+                "metadata": _safe_json(c.metadata_json),
+            }
+            for c in components
+        ]
+    )
 
 
 async def _tool_list_canvases(project_id: str, db: AsyncSession) -> str:
-    result = await db.execute(
-        select(Canvas).where(Canvas.project_id == project_id)
-    )
+    result = await db.execute(select(Canvas).where(Canvas.project_id == project_id))
     canvases = result.scalars().all()
     out = []
     for c in canvases:
-        comp_count = (await db.execute(
-            select(func.count()).select_from(CanvasComponent)
-            .where(CanvasComponent.canvas_id == c.id)
-        )).scalar() or 0
-        out.append({
-            "id": c.id,
-            "name": c.name,
-            "component_count": comp_count,
-            "created_at": c.created_at.isoformat() if c.created_at else None,
-        })
+        comp_count = (
+            await db.execute(
+                select(func.count())
+                .select_from(CanvasComponent)
+                .where(CanvasComponent.canvas_id == c.id)
+            )
+        ).scalar() or 0
+        out.append(
+            {
+                "id": c.id,
+                "name": c.name,
+                "component_count": comp_count,
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+            }
+        )
     return json.dumps(out)
 
 
-async def _tool_get_ideas(project_id: str, db: AsyncSession, status: str | None = None) -> str:
+async def _tool_get_ideas(
+    project_id: str, db: AsyncSession, status: str | None = None
+) -> str:
     q = select(Idea).where(Idea.project_id == project_id)
     if status:
         q = q.where(Idea.status == status)
     q = q.order_by(Idea.created_at.desc())
     result = await db.execute(q)
     ideas = result.scalars().all()
-    return json.dumps([
-        {
-            "id": i.id,
-            "title": i.title,
-            "description": i.description,
-            "status": i.status,
-            "category": i.category,
-            "feasibility_score": i.feasibility_score,
-            "created_at": i.created_at.isoformat() if i.created_at else None,
-        }
-        for i in ideas
-    ])
+    return json.dumps(
+        [
+            {
+                "id": i.id,
+                "title": i.title,
+                "description": i.description,
+                "status": i.status,
+                "category": i.category,
+                "feasibility_score": i.feasibility_score,
+                "created_at": i.created_at.isoformat() if i.created_at else None,
+            }
+            for i in ideas
+        ]
+    )
 
 
 async def _tool_search_ideas(project_id: str, query: str, db: AsyncSession) -> str:
@@ -320,16 +366,18 @@ async def _tool_search_ideas(project_id: str, query: str, db: AsyncSession) -> s
         .limit(20)
     )
     ideas = result.scalars().all()
-    return json.dumps([
-        {
-            "id": i.id,
-            "title": i.title,
-            "description": i.description[:200] if i.description else "",
-            "status": i.status,
-            "category": i.category,
-        }
-        for i in ideas
-    ])
+    return json.dumps(
+        [
+            {
+                "id": i.id,
+                "title": i.title,
+                "description": i.description[:200] if i.description else "",
+                "status": i.status,
+                "category": i.category,
+            }
+            for i in ideas
+        ]
+    )
 
 
 async def _tool_get_scaffold_job(project_id: str, job_id: str, db: AsyncSession) -> str:
@@ -342,16 +390,18 @@ async def _tool_get_scaffold_job(project_id: str, job_id: str, db: AsyncSession)
     job = result.scalar_one_or_none()
     if not job:
         return json.dumps({"error": "Scaffold job not found"})
-    return json.dumps({
-        "id": job.id,
-        "status": job.status,
-        "component_ids": _safe_json(job.component_ids),
-        "spec": _safe_json(job.spec_json),
-        "generated_files": _safe_json(job.generated_files),
-        "error_message": job.error_message,
-        "created_at": job.created_at.isoformat() if job.created_at else None,
-        "completed_at": job.completed_at.isoformat() if job.completed_at else None,
-    })
+    return json.dumps(
+        {
+            "id": job.id,
+            "status": job.status,
+            "component_ids": _safe_json(job.component_ids),
+            "spec": _safe_json(job.spec_json),
+            "generated_files": _safe_json(job.generated_files),
+            "error_message": job.error_message,
+            "created_at": job.created_at.isoformat() if job.created_at else None,
+            "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+        }
+    )
 
 
 async def _tool_get_deploy_config(project_id: str, db: AsyncSession) -> str:
@@ -359,29 +409,38 @@ async def _tool_get_deploy_config(project_id: str, db: AsyncSession) -> str:
         select(Environment).where(Environment.project_id == project_id)
     )
     envs = result.scalars().all()
-    return json.dumps([
-        {
-            "id": e.id,
-            "name": e.name,
-            "config": _safe_json(e.config_json),
-            "compose_yaml": e.compose_yaml,
-            "created_at": e.created_at.isoformat() if e.created_at else None,
-        }
-        for e in envs
-    ])
+    return json.dumps(
+        [
+            {
+                "id": e.id,
+                "name": e.name,
+                "config": _safe_json(e.config_json),
+                "compose_yaml": e.compose_yaml,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in envs
+        ]
+    )
 
 
 async def _tool_get_knowledge_context(project_slug: str, query: str) -> str:
     recall = get_recall_client()
     try:
         context = await recall.get_context(query=query, max_tokens=2000)
-        return context if context else json.dumps({"result": "No knowledge found for this query."})
+        return (
+            context
+            if context
+            else json.dumps({"result": "No knowledge found for this query."})
+        )
     except Exception as e:
         return json.dumps({"error": str(e)})
 
 
 async def _tool_push_to_recall(
-    project_id: str, project_slug: str, items: list[dict], db: AsyncSession,
+    project_id: str,
+    project_slug: str,
+    items: list[dict],
+    db: AsyncSession,
 ) -> str:
     """Store knowledge items in Recall and create local KnowledgeEntity rows."""
     from app.models.knowledge import KnowledgeEntity
@@ -416,14 +475,21 @@ async def _tool_push_to_recall(
             stored.append({"content": content[:100], "status": "stored"})
         except Exception as e:
             logger.warning("push_to_recall.failed", error=str(e))
-            stored.append({"content": content[:100], "status": "local_only", "error": str(e)})
+            stored.append(
+                {"content": content[:100], "status": "local_only", "error": str(e)}
+            )
 
     await db.flush()
     return json.dumps({"stored": stored, "count": len(stored)})
 
 
 async def _tool_create_idea(
-    project_id: str, user_id: str, title: str, description: str, category: str | None, db: AsyncSession,
+    project_id: str,
+    user_id: str,
+    title: str,
+    description: str,
+    category: str | None,
+    db: AsyncSession,
 ) -> str:
     """Create an idea from the AI chat tool."""
     from app.core.background import enqueue
@@ -460,13 +526,15 @@ async def _tool_create_idea(
 
     await enqueue("feasibility", _run_feasibility, idea.id)
 
-    return json.dumps({
-        "status": "created",
-        "idea_id": idea.id,
-        "title": idea.title,
-        "description": idea.description[:200],
-        "category": idea.category,
-    })
+    return json.dumps(
+        {
+            "status": "created",
+            "idea_id": idea.id,
+            "title": idea.title,
+            "description": idea.description[:200],
+            "category": idea.category,
+        }
+    )
 
 
 def _autopilot_dir(work_dir: str | None = None) -> Path:
@@ -478,7 +546,12 @@ def _autopilot_dir(work_dir: str | None = None) -> Path:
 def _tool_autopilot_status(work_dir: str | None = None) -> str:
     ap = _autopilot_dir(work_dir)
     if not ap.exists():
-        return json.dumps({"error": "No .autopilot/ directory found", "hint": "Run /plan first to create an Autopilot spec."})
+        return json.dumps(
+            {
+                "error": "No .autopilot/ directory found",
+                "hint": "Run /plan first to create an Autopilot spec.",
+            }
+        )
 
     result: dict = {"autopilot_dir": str(ap)}
 
@@ -496,7 +569,9 @@ def _tool_autopilot_status(work_dir: str | None = None) -> str:
             result["task_summary"] = {
                 "total": len(tasks),
                 "done": sum(1 for t in tasks if t.get("status") == "DONE"),
-                "in_progress": sum(1 for t in tasks if t.get("status") == "IN_PROGRESS"),
+                "in_progress": sum(
+                    1 for t in tasks if t.get("status") == "IN_PROGRESS"
+                ),
                 "pending": sum(1 for t in tasks if t.get("status") == "PENDING"),
                 "blocked": sum(1 for t in tasks if t.get("status") == "BLOCKED"),
             }
@@ -562,7 +637,9 @@ async def _execute_tool(
     try:
         match name:
             case "get_project_summary":
-                return await _tool_get_project_summary(tool_input.get("project_id", project_id), db)
+                return await _tool_get_project_summary(
+                    tool_input.get("project_id", project_id), db
+                )
             case "get_canvas_components":
                 return await _tool_get_canvas_components(
                     tool_input.get("project_id", project_id),
@@ -570,7 +647,9 @@ async def _execute_tool(
                     db,
                 )
             case "list_canvases":
-                return await _tool_list_canvases(tool_input.get("project_id", project_id), db)
+                return await _tool_list_canvases(
+                    tool_input.get("project_id", project_id), db
+                )
             case "get_ideas":
                 return await _tool_get_ideas(
                     tool_input.get("project_id", project_id),
@@ -590,7 +669,9 @@ async def _execute_tool(
                     db,
                 )
             case "get_deploy_config":
-                return await _tool_get_deploy_config(tool_input.get("project_id", project_id), db)
+                return await _tool_get_deploy_config(
+                    tool_input.get("project_id", project_id), db
+                )
             case "get_knowledge_context":
                 return await _tool_get_knowledge_context(
                     tool_input.get("project_slug", project_slug),
@@ -632,14 +713,17 @@ async def _execute_tool(
 
 # ── System prompt ──────────────────────────────────────────────────────────
 
+
 async def _build_system_prompt(
-    project_name: str, project_slug: str, project_id: str,
+    project_name: str,
+    project_slug: str,
+    project_id: str,
 ) -> str:
     base = (
-        f"You are the AI assistant for Foundry, a collaborative software design tool.\n"
+        f"You are the AI assistant for Codevv, a collaborative software design tool.\n"
         f"You have tools to query project data and knowledge memory.\n"
         f"Current project: {project_name} (slug: {project_slug}, id: {project_id})\n"
-        f'Recall domain for this project: foundry:{project_slug}\n'
+        f"Recall domain for this project: codevv:{project_slug}\n"
         f"When tools require project_id, use: {project_id}\n"
         f"When tools require project_slug, use: {project_slug}\n"
         f"You can create ideas from conversation using the create_idea tool.\n"
@@ -664,6 +748,7 @@ async def _build_system_prompt(
 
 
 # ── Conversation persistence helpers ──────────────────────────────────────
+
 
 def _extract_text(content: list[dict] | str) -> str:
     """Extract plain text from Anthropic message content blocks."""
@@ -700,12 +785,14 @@ async def _load_conversation_messages(conv: Conversation) -> list[dict]:
                 try:
                     tool_uses = json.loads(msg.tool_uses_json)
                     for tu in tool_uses:
-                        content.append({
-                            "type": "tool_use",
-                            "id": f"stored_{uuid.uuid4().hex[:12]}",
-                            "name": tu["name"],
-                            "input": tu.get("input", {}),
-                        })
+                        content.append(
+                            {
+                                "type": "tool_use",
+                                "id": f"stored_{uuid.uuid4().hex[:12]}",
+                                "name": tu["name"],
+                                "input": tu.get("input", {}),
+                            }
+                        )
                 except (json.JSONDecodeError, KeyError):
                     pass
             messages.append({"role": "assistant", "content": content})
@@ -713,6 +800,7 @@ async def _load_conversation_messages(conv: Conversation) -> list[dict]:
 
 
 # ── Main service ───────────────────────────────────────────────────────────
+
 
 class ClaudeService:
     """Manages conversations and Anthropic API calls with SQLite persistence."""
@@ -737,7 +825,11 @@ class ClaudeService:
         self._cache.pop(self._key(user_id, project_id), None)
 
     async def load_conversation(
-        self, conversation_id: str, user_id: str, project_id: str, db: AsyncSession,
+        self,
+        conversation_id: str,
+        user_id: str,
+        project_id: str,
+        db: AsyncSession,
     ) -> bool:
         """Load a specific conversation from DB into the cache."""
         result = await db.execute(
@@ -762,7 +854,12 @@ class ClaudeService:
         return True
 
     async def _ensure_conversation(
-        self, user_id: str, project_id: str, first_message: str, model: str, db: AsyncSession,
+        self,
+        user_id: str,
+        project_id: str,
+        first_message: str,
+        model: str,
+        db: AsyncSession,
     ) -> tuple[str, list[dict]]:
         """Get or create a conversation. Returns (conversation_id, messages)."""
         key = self._key(user_id, project_id)
@@ -774,7 +871,9 @@ class ClaudeService:
         # Try loading the most recent conversation from DB
         result = await db.execute(
             select(Conversation)
-            .where(Conversation.user_id == user_id, Conversation.project_id == project_id)
+            .where(
+                Conversation.user_id == user_id, Conversation.project_id == project_id
+            )
             .order_by(Conversation.updated_at.desc())
             .limit(1)
             .options(selectinload(Conversation.messages))
@@ -804,11 +903,17 @@ class ClaudeService:
         return conv.id, messages
 
     async def _persist_message(
-        self, conversation_id: str, role: str, content: list[dict] | str, db: AsyncSession,
+        self,
+        conversation_id: str,
+        role: str,
+        content: list[dict] | str,
+        db: AsyncSession,
     ) -> None:
         """Write a message to the DB and update conversation counters."""
         text = _extract_text(content) if isinstance(content, (list,)) else content
-        tool_uses = _extract_tool_uses(content) if isinstance(content, (list,)) else None
+        tool_uses = (
+            _extract_tool_uses(content) if isinstance(content, (list,)) else None
+        )
 
         msg = ConversationMessage(
             id=str(uuid.uuid4()),
@@ -829,7 +934,10 @@ class ClaudeService:
         await db.flush()
 
     async def start_new_conversation(
-        self, user_id: str, project_id: str, db: AsyncSession,
+        self,
+        user_id: str,
+        project_id: str,
+        db: AsyncSession,
     ) -> str:
         """Explicitly start a new conversation. Returns new conversation_id."""
         key = self._key(user_id, project_id)
@@ -878,11 +986,17 @@ class ClaudeService:
 
         # Ensure we have a conversation (creates if needed)
         conversation_id, messages = await self._ensure_conversation(
-            user_id, project_id, message, chosen_model, db,
+            user_id,
+            project_id,
+            message,
+            chosen_model,
+            db,
         )
 
         # Build system prompt (async — includes Recall context on first call)
-        system_prompt = await _build_system_prompt(project_name, project_slug, project_id)
+        system_prompt = await _build_system_prompt(
+            project_name, project_slug, project_id
+        )
 
         # Build combined tool list: built-in + MCP
         mcp_mgr = get_mcp_manager()
@@ -931,21 +1045,27 @@ class ClaudeService:
                 # Build content blocks for history
                 for block in response.content:
                     if block.type == "text":
-                        collected_content.append({
-                            "type": "text",
-                            "text": block.text,
-                        })
+                        collected_content.append(
+                            {
+                                "type": "text",
+                                "text": block.text,
+                            }
+                        )
                     elif block.type == "tool_use":
-                        collected_content.append({
-                            "type": "tool_use",
-                            "id": block.id,
-                            "name": block.name,
-                            "input": block.input,
-                        })
+                        collected_content.append(
+                            {
+                                "type": "tool_use",
+                                "id": block.id,
+                                "name": block.name,
+                                "input": block.input,
+                            }
+                        )
 
                 # Append assistant message to history and persist
                 messages.append({"role": "assistant", "content": collected_content})
-                await self._persist_message(conversation_id, "assistant", collected_content, db)
+                await self._persist_message(
+                    conversation_id, "assistant", collected_content, db
+                )
 
                 # If stop_reason is "end_turn", we're done
                 if response.stop_reason == "end_turn":
@@ -971,19 +1091,26 @@ class ClaudeService:
                             # Route: MCP tools vs built-in tools
                             if mcp_mgr.is_mcp_tool(block.name):
                                 result = await mcp_mgr.call_tool(
-                                    block.name, block.input,
+                                    block.name,
+                                    block.input,
                                 )
                             else:
                                 result = await _execute_tool(
-                                    block.name, block.input,
-                                    project_id, project_slug, user_id, db,
+                                    block.name,
+                                    block.input,
+                                    project_id,
+                                    project_slug,
+                                    user_id,
+                                    db,
                                 )
 
-                            tool_results.append({
-                                "type": "tool_result",
-                                "tool_use_id": block.id,
-                                "content": result,
-                            })
+                            tool_results.append(
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": block.id,
+                                    "content": result,
+                                }
+                            )
 
                     # Append tool results to messages
                     messages.append({"role": "user", "content": tool_results})
@@ -992,20 +1119,30 @@ class ClaudeService:
                 # Any other stop reason — we're done
                 break
 
-            yield {"type": "done", "model": chosen_model, "conversation_id": conversation_id}
+            yield {
+                "type": "done",
+                "model": chosen_model,
+                "conversation_id": conversation_id,
+            }
 
         except anthropic.AuthenticationError as e:
             logger.error("claude.auth_error", error=str(e))
             # Remove the user message we just appended since the call failed
             if messages and messages[-1].get("role") == "user":
                 messages.pop()
-            yield {"type": "error", "message": "Authentication failed. Token may have expired — try refreshing."}
+            yield {
+                "type": "error",
+                "message": "Authentication failed. Token may have expired — try refreshing.",
+            }
 
         except anthropic.RateLimitError as e:
             logger.warning("claude.rate_limit", error=str(e))
             if messages and messages[-1].get("role") == "user":
                 messages.pop()
-            yield {"type": "error", "message": "Rate limited. Please wait a moment and try again."}
+            yield {
+                "type": "error",
+                "message": "Rate limited. Please wait a moment and try again.",
+            }
 
         except Exception as e:
             logger.error("claude.error", error=str(e), error_type=type(e).__name__)

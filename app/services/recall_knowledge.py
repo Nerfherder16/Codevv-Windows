@@ -1,8 +1,7 @@
-"""Bridge between Foundry knowledge operations and Recall."""
+"""Bridge between Codevv knowledge operations and Recall."""
 
 from __future__ import annotations
 
-import json
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +13,7 @@ logger = structlog.get_logger()
 
 
 def _domain(project_slug: str) -> str:
-    return f"foundry:{project_slug}"
+    return f"codevv:{project_slug}"
 
 
 async def store_knowledge(
@@ -82,12 +81,14 @@ async def get_knowledge_graph(project_slug: str) -> dict:
         content = mem.get("content", "")
         name = content.split(":")[0].strip() if ":" in content else content[:60]
 
-        nodes.append({
-            "id": mid,
-            "name": name,
-            "entity_type": entity_type,
-            "depth": 0,
-        })
+        nodes.append(
+            {
+                "id": mid,
+                "name": name,
+                "entity_type": entity_type,
+                "depth": 0,
+            }
+        )
 
     # Build edges from Recall relationships
     edges = []
@@ -97,12 +98,14 @@ async def get_knowledge_graph(project_slug: str) -> dict:
         for rel in related:
             target_id = rel.get("target_id", "")
             if target_id in node_ids:
-                edges.append({
-                    "source": mid,
-                    "target": target_id,
-                    "relation_type": rel.get("relationship_type", "relates_to"),
-                    "weight": rel.get("strength", 1.0),
-                })
+                edges.append(
+                    {
+                        "source": mid,
+                        "target": target_id,
+                        "relation_type": rel.get("relationship_type", "relates_to"),
+                        "weight": rel.get("strength", 1.0),
+                    }
+                )
 
     return {"nodes": nodes, "edges": edges}
 

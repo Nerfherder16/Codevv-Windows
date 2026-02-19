@@ -40,7 +40,7 @@ export function AIChatProvider({ children }: { children: React.ReactNode }) {
 
   // Read model preference from localStorage
   const [currentModel, setCurrentModelState] = useState(
-    () => localStorage.getItem("bh-ai-model") || "claude-opus-4-6",
+    () => localStorage.getItem("cv-ai-model") || "claude-opus-4-6",
   );
 
   const open = useCallback((context?: ChatContextType) => {
@@ -53,7 +53,7 @@ export function AIChatProvider({ children }: { children: React.ReactNode }) {
 
   const setModel = useCallback((model: string) => {
     setCurrentModelState(model);
-    localStorage.setItem("bh-ai-model", model);
+    localStorage.setItem("cv-ai-model", model);
   }, []);
 
   const addMessage = useCallback((msg: ChatMessage) => {

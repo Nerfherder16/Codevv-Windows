@@ -1,7 +1,7 @@
 const API_BASE = "/api";
 
 function getToken(): string | null {
-  return localStorage.getItem("bh-token");
+  return localStorage.getItem("cv-token");
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {

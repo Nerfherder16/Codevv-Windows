@@ -11,13 +11,13 @@ const ThemeContext = createContext<ThemeState | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("bh-theme") as Theme) || "dark",
+    () => (localStorage.getItem("cv-theme") as Theme) || "dark",
   );
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("bh-theme", theme);
+    localStorage.setItem("cv-theme", theme);
   }, [theme]);
 
   const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));

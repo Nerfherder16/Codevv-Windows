@@ -67,8 +67,8 @@ export function LoginPage() {
         {/* Logo / branding */}
         <div className="text-center mb-8">
           <img
-            src="/foundrylogo.png"
-            alt="Foundry"
+            src="/codevvlogo.png"
+            alt="Codevv"
             className="w-48 mx-auto mb-4"
           />
           <p className="text-gray-500 dark:text-gray-400 mt-2">

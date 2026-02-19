@@ -49,11 +49,11 @@ async def claude_callback(code: str = Query(...), state: str = Query(...)):
     """Handle OAuth callback from Anthropic. Browser redirects here."""
     auth = get_claude_auth()
     try:
-        result = await auth.handle_callback(code, state)
+        await auth.handle_callback(code, state)
         # Return a simple HTML page that closes itself / shows success
         return HTMLResponse(
             "<html><body><h2>Logged in to Claude!</h2>"
-            "<p>You can close this tab and return to Foundry.</p>"
+            "<p>You can close this tab and return to Codevv.</p>"
             "<script>window.close()</script></body></html>"
         )
     except Exception as e:
