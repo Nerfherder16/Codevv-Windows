@@ -18,7 +18,7 @@ export function Card({ children, className, onClick, hover, glow }: Props) {
         // Light mode: white card, dark mode: glass
         "bg-white dark:bg-white/[0.03] dark:backdrop-blur-xl",
         hover &&
-          "cursor-pointer hover:border-amber-400/40 dark:hover:border-amber-400/20 hover:shadow-lg dark:hover:shadow-amber-500/[0.03]",
+          "cursor-pointer hover:border-cyan-400/40 dark:hover:border-cyan-400/20 hover:shadow-lg dark:hover:shadow-cyan-500/[0.03]",
         glow && "glow-card",
         onClick && "cursor-pointer",
         className,

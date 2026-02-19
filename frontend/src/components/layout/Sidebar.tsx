@@ -70,7 +70,7 @@ export function Sidebar() {
               cn(
                 "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
                 isActive
-                  ? "nav-active text-amber-500 dark:text-amber-400 font-medium"
+                  ? "nav-active text-cyan-400 dark:text-cyan-400 font-medium"
                   : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.04]",
               )
             }
@@ -79,12 +79,12 @@ export function Sidebar() {
               <>
                 {/* Active indicator bar */}
                 {isActive && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(56,189,248,0.4)]" />
                 )}
                 <item.icon
                   className={cn(
                     "w-5 h-5 shrink-0 transition-colors",
-                    isActive && "drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]",
+                    isActive && "drop-shadow-[0_0_6px_rgba(56,189,248,0.3)]",
                   )}
                 />
                 {!collapsed && <span className="truncate">{item.label}</span>}

@@ -127,7 +127,7 @@ export function ProjectListPage() {
               <>
                 <div className="w-px h-6 bg-gray-200 dark:bg-white/[0.06] mx-1" />
                 <div className="flex items-center gap-2.5 text-sm ml-1">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-amber-500/20">
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500 text-white flex items-center justify-center text-xs font-bold shadow-lg shadow-cyan-500/20">
                     {user.display_name?.charAt(0)?.toUpperCase() || "U"}
                   </div>
                   <span className="hidden sm:inline text-gray-600 dark:text-gray-400 font-medium">
@@ -155,7 +155,7 @@ export function ProjectListPage() {
             {user ? (
               <>
                 Welcome back,{" "}
-                <span className="font-semibold dark:gradient-text">
+                <span className="font-semibold text-cyan-400">
                   {user.display_name?.split(" ")[0] || "there"}
                 </span>
               </>
@@ -173,8 +173,8 @@ export function ProjectListPage() {
           <div className="grid grid-cols-3 gap-4 mb-10 animate-in">
             <div className="rounded-xl border border-gray-200/80 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <Layers className="w-4 h-4 text-amber-500" />
+                <div className="w-9 h-9 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-cyan-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-light text-gray-900 dark:text-gray-100">
@@ -254,7 +254,7 @@ export function ProjectListPage() {
               <button
                 key={project.id}
                 onClick={() => navigate(`/projects/${project.id}`)}
-                className="group relative text-left rounded-xl border border-gray-200/80 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-5 transition-all duration-300 hover:border-amber-400/40 dark:hover:border-amber-400/20 hover:shadow-lg dark:hover:shadow-amber-500/[0.04] glow-card"
+                className="group relative text-left rounded-xl border border-gray-200/80 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-5 transition-all duration-300 hover:border-cyan-400/40 dark:hover:border-cyan-400/20 hover:shadow-lg dark:hover:shadow-cyan-500/[0.04] glow-card"
               >
                 {/* Project name */}
                 <div className="flex items-start justify-between mb-3">
@@ -292,12 +292,12 @@ export function ProjectListPage() {
             {/* New project card */}
             <button
               onClick={() => setModalOpen(true)}
-              className="group rounded-xl border-2 border-dashed border-gray-200 dark:border-white/[0.06] p-5 flex flex-col items-center justify-center gap-3 min-h-[160px] transition-all duration-300 hover:border-amber-400/40 dark:hover:border-amber-400/20 hover:bg-amber-500/[0.02]"
+              className="group rounded-xl border-2 border-dashed border-gray-200 dark:border-white/[0.06] p-5 flex flex-col items-center justify-center gap-3 min-h-[160px] transition-all duration-300 hover:border-cyan-400/40 dark:hover:border-cyan-400/20 hover:bg-cyan-500/[0.02]"
             >
-              <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/[0.04] flex items-center justify-center group-hover:bg-amber-500/10 transition-colors duration-200">
-                <Plus className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-amber-500 transition-colors duration-200" />
+              <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-white/[0.04] flex items-center justify-center group-hover:bg-cyan-500/10 transition-colors duration-200">
+                <Plus className="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-cyan-400 transition-colors duration-200" />
               </div>
-              <span className="text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-amber-500 transition-colors duration-200">
+              <span className="text-sm font-medium text-gray-400 dark:text-gray-500 group-hover:text-cyan-400 transition-colors duration-200">
                 New Project
               </span>
             </button>
@@ -333,7 +333,7 @@ export function ProjectListPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Project"
               autoFocus
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
             />
           </div>
           <div>
@@ -349,7 +349,7 @@ export function ProjectListPage() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What are you building?"
               rows={3}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 resize-none"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
