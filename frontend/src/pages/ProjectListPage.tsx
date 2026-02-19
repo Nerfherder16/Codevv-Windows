@@ -106,7 +106,7 @@ export function ProjectListPage() {
           <img
             src="/codevvtransparentlogo.webp"
             alt="Codevv"
-            className="h-36 -my-6"
+            className="h-48 -my-12"
           />
 
           {/* Right controls */}
