@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Warm dark palette */
 @theme {
   --color-gray-950: #0b0c14;
@@ -21,7 +23,11 @@
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+code, pre, .font-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
 }
 
 /* ────────────────────────────────────────────────────────
