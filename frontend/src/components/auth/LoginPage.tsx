@@ -187,6 +187,29 @@ export function LoginPage() {
             </Button>
           </form>
 
+          {/* Dev login — skip auth, use local user */}
+          <div className="mt-6 pt-5 border-t border-gray-200 dark:border-white/[0.06]">
+            <button
+              type="button"
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  localStorage.removeItem("cv-token");
+                  // fetchUser in AuthContext picks up local@codevv.local
+                  const res = await fetch("/api/auth/me");
+                  if (res.ok) {
+                    window.location.reload();
+                  }
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              className="w-full py-2.5 rounded-lg border border-gray-200 dark:border-white/[0.08] text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors duration-200"
+            >
+              Continue as Dev User
+            </button>
+          </div>
+
           {/* Toggle mode */}
           <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-500">
             {mode === "login" ? (
