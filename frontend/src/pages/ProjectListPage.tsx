@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
-  FolderOpen,
   Users,
   Sun,
   Moon,
@@ -20,6 +19,7 @@ import { Button } from "../components/common/Button";
 import { Modal } from "../components/common/Modal";
 import { PageLoading } from "../components/common/LoadingSpinner";
 import { relativeTime } from "../lib/utils";
+import { FirstRunWalkthrough } from "../components/common/FirstRunWalkthrough";
 
 export function ProjectListPage() {
   const navigate = useNavigate();
@@ -232,22 +232,7 @@ export function ProjectListPage() {
 
         {/* Project grid */}
         {projects.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center animate-in">
-            <div className="w-20 h-20 rounded-2xl bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.06] flex items-center justify-center mb-6">
-              <FolderOpen className="w-8 h-8 text-gray-300 dark:text-gray-600" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-200 mb-2">
-              No projects yet
-            </h3>
-            <p className="text-gray-400 dark:text-gray-500 text-sm max-w-sm mb-8">
-              Create your first project to start designing architecture,
-              generating code, and deploying — all with AI assistance.
-            </p>
-            <Button onClick={() => setModalOpen(true)}>
-              <Plus className="w-4 h-4" />
-              Create Your First Project
-            </Button>
-          </div>
+          <FirstRunWalkthrough onCreateProject={() => setModalOpen(true)} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((project) => (

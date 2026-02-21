@@ -182,3 +182,47 @@ code, pre, .font-mono {
 .animate-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+/* ────────────────────────────────────────────────────────
+   FIRST-RUN WALKTHROUGH ANIMATIONS
+   ──────────────────────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleXIn {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 175, 185, 0.25); }
+  50%      { box-shadow: 0 0 24px rgba(0, 175, 185, 0.45), 0 0 48px rgba(0, 175, 185, 0.15); }
+}
+
+.walkthrough-fade {
+  opacity: 0;
+  animation: fadeSlideUp 0.4s ease-out forwards;
+}
+.walkthrough-scale-x {
+  transform: scaleX(0);
+  transform-origin: center;
+  animation: scaleXIn 0.3s ease-out forwards;
+}
+.btn-pulse-glow {
+  animation: fadeSlideUp 0.4s ease-out forwards, pulseGlow 2s ease-in-out 1.7s infinite;
+  opacity: 0;
+}
+.btn-pulse-glow:hover {
+  animation: fadeSlideUp 0.4s ease-out forwards;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walkthrough-fade,
+  .walkthrough-scale-x,
+  .btn-pulse-glow {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
