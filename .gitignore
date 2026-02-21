@@ -56,3 +56,10 @@ design.md
 
 # Reference documents
 *.docx
+*.pdf
+
+# Screenshots / design images
+*.png
+
+# Claude project memory
+.claude/
