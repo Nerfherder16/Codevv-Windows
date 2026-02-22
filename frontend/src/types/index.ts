@@ -239,6 +239,7 @@ export interface ToolUseEvent {
 export interface DoneEvent {
   session_id: string | null;
   model: string;
+  conversation_id?: string;
 }
 
 export interface AIModel {

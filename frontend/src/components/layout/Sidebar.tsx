@@ -18,6 +18,7 @@ import {
   Coins,
   ClipboardList,
   Shield,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 
@@ -38,6 +39,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Core",
     items: [
       { to: "", icon: LayoutDashboard, label: "Overview", end: true },
+      { to: "chat", icon: MessageSquare, label: "AI Chat" },
       { to: "canvas", icon: Pencil, label: "Canvas" },
       { to: "ideas", icon: Lightbulb, label: "Idea Vault" },
       { to: "knowledge", icon: Share2, label: "Knowledge Graph" },

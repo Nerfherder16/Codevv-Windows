@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { AIChatProvider } from "../../contexts/AIChatContext";
@@ -8,6 +8,9 @@ import { TourProvider } from "../../contexts/TourContext";
 import { TourOverlay } from "../tour/TourOverlay";
 
 export function AppShell() {
+  const location = useLocation();
+  const isChatPage = location.pathname.endsWith("/chat");
+
   return (
     <AIChatProvider>
       <TourProvider>
@@ -19,7 +22,7 @@ export function AppShell() {
               <Outlet />
             </main>
           </div>
-          <AIChatPanel />
+          {!isChatPage && <AIChatPanel />}
         </div>
         <TourOverlay />
       </TourProvider>

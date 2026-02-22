@@ -20,6 +20,7 @@ import { PipelinePage } from "./pages/PipelinePage";
 import { SolanaPage } from "./pages/SolanaPage";
 import { AuditPage } from "./pages/AuditPage";
 import { CompliancePage } from "./pages/CompliancePage";
+import { ChatPage } from "./pages/ChatPage";
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="solana" element={<SolanaPage />} />
           <Route path="audit" element={<AuditPage />} />
           <Route path="compliance" element={<CompliancePage />} />
+          <Route path="chat" element={<ChatPage />} />
         </Route>
       </Routes>
     </ProtectedRoute>
