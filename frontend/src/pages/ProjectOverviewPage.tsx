@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Users, Pencil, Lightbulb, FolderOpen } from "lucide-react";
 import { api } from "../lib/api";
 import type { ProjectDetail, Canvas, Idea } from "../types";
 import { useToast } from "../contexts/ToastContext";
+import { useTour } from "../contexts/TourContext";
 import { Card } from "../components/common/Card";
 import { PageHeader } from "../components/common/PageHeader";
 import { PageLoading } from "../components/common/LoadingSpinner";
@@ -76,6 +77,8 @@ export function ProjectOverviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { startTour } = useTour();
+  const tourStarted = useRef(false);
 
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [canvases, setCanvases] = useState<Canvas[]>([]);
@@ -106,6 +109,15 @@ export function ProjectOverviewPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Auto-start guided tour on first visit
+  useEffect(() => {
+    if (!loading && project && !tourStarted.current) {
+      tourStarted.current = true;
+      const timer = setTimeout(startTour, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, project, startTour]);
 
   if (loading) {
     return <PageLoading />;
@@ -149,20 +161,24 @@ export function ProjectOverviewPage() {
 
       {/* Quick links grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <QuickLink
-          icon={<Pencil className="w-6 h-6" />}
-          label="Canvases"
-          count={canvases.length}
-          color="emerald"
-          onClick={() => navigate(`/projects/${projectId}/canvas`)}
-        />
-        <QuickLink
-          icon={<Lightbulb className="w-6 h-6" />}
-          label="Ideas"
-          count={ideas.length}
-          color="cyan"
-          onClick={() => navigate(`/projects/${projectId}/ideas`)}
-        />
+        <div data-tour="canvas-card">
+          <QuickLink
+            icon={<Pencil className="w-6 h-6" />}
+            label="Canvases"
+            count={canvases.length}
+            color="emerald"
+            onClick={() => navigate(`/projects/${projectId}/canvas`)}
+          />
+        </div>
+        <div data-tour="ideas-card">
+          <QuickLink
+            icon={<Lightbulb className="w-6 h-6" />}
+            label="Ideas"
+            count={ideas.length}
+            color="cyan"
+            onClick={() => navigate(`/projects/${projectId}/ideas`)}
+          />
+        </div>
         <QuickLink
           icon={<Users className="w-6 h-6" />}
           label="Members"
@@ -177,7 +193,7 @@ export function ProjectOverviewPage() {
       </div>
 
       {/* Members section */}
-      <section id="members-section" className="mb-8">
+      <section id="members-section" data-tour="members" className="mb-8">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
           Members
         </h2>

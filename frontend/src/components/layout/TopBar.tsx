@@ -15,6 +15,7 @@ export function TopBar() {
       <div className="flex items-center gap-1.5">
         {/* AI toggle */}
         <button
+          data-tour="ai-chat"
           onClick={toggleChat}
           className={`p-2 rounded-xl transition-all duration-200 ${
             chatOpen

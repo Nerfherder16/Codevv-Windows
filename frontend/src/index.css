@@ -226,3 +226,83 @@ code, pre, .font-mono {
     animation: none !important;
   }
 }
+
+/* ────────────────────────────────────────────────────────
+   GUIDED TOUR — spotlight + tooltip
+   ──────────────────────────────────────────────────────── */
+[data-tour-active] {
+  position: relative;
+  z-index: 61;
+}
+
+.tour-spotlight {
+  position: fixed;
+  z-index: 60;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  transition: top 0.3s ease-out, left 0.3s ease-out, width 0.3s ease-out, height 0.3s ease-out;
+}
+
+.tour-tooltip {
+  position: fixed;
+  z-index: 70;
+  width: 280px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(25, 26, 40, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: tourFadeIn 0.2s ease-out;
+  pointer-events: auto;
+}
+
+@keyframes tourFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Arrow carets */
+.tour-tooltip-arrow {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(25, 26, 40, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transform: rotate(45deg);
+}
+.tour-arrow-top {
+  top: -6px;
+  left: 50%;
+  margin-left: -5px;
+  border-bottom: none;
+  border-right: none;
+}
+.tour-arrow-bottom {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -5px;
+  border-top: none;
+  border-left: none;
+}
+.tour-arrow-left {
+  left: -6px;
+  top: 50%;
+  margin-top: -5px;
+  border-top: none;
+  border-right: none;
+}
+.tour-arrow-right {
+  right: -6px;
+  top: 50%;
+  margin-top: -5px;
+  border-bottom: none;
+  border-left: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spotlight { transition: none !important; }
+  .tour-tooltip { animation: none !important; }
+}
