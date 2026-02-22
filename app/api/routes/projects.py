@@ -43,11 +43,15 @@ async def get_project_with_access(
     )
     project = result.scalar_one_or_none()
     if not project:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Project not found"
+        )
 
     membership = next((m for m in project.members if m.user_id == user.id), None)
     if not membership:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this project")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this project"
+        )
 
     required = ROLE_PRIORITY.get(min_role, 2)
     actual = ROLE_PRIORITY.get(membership.role, 2)
@@ -112,14 +116,26 @@ async def list_projects(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """List all non-archived projects the user is a member of."""
+    """List all non-archived projects, auto-adding user as member."""
     result = await db.execute(
         select(Project)
-        .join(ProjectMember)
-        .where(ProjectMember.user_id == user.id, Project.archived == False)
+        .where(Project.archived.is_(False))
         .options(selectinload(Project.members))
     )
     projects = result.scalars().unique().all()
+
+    # Auto-add user as editor to any project they aren't a member of
+    for p in projects:
+        if not any(m.user_id == user.id for m in p.members):
+            member = ProjectMember(
+                id=str(uuid.uuid4()),
+                project_id=p.id,
+                user_id=user.id,
+                role="editor",
+            )
+            db.add(member)
+            p.members.append(member)
+    await db.flush()
 
     return [
         ProjectResponse(
@@ -211,7 +227,11 @@ async def update_project(
     )
 
 
-@router.post("/{project_id}/members", response_model=MemberResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/{project_id}/members",
+    response_model=MemberResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def add_member(
     project_id: str,
     body: ProjectMemberAdd,
@@ -225,12 +245,17 @@ async def add_member(
     result = await db.execute(select(User).where(User.email == body.email))
     target_user = result.scalar_one_or_none()
     if not target_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found with that email")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found with that email",
+        )
 
     # Check not already a member
     existing = next((m for m in project.members if m.user_id == target_user.id), None)
     if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User is already a member")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="User is already a member"
+        )
 
     member = ProjectMember(
         id=str(uuid.uuid4()),

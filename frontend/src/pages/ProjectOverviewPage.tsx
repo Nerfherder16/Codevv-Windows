@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Users, Pencil, Lightbulb, FolderOpen } from "lucide-react";
 import { api } from "../lib/api";
 import type { ProjectDetail, Canvas, Idea } from "../types";
 import { useToast } from "../contexts/ToastContext";
-import { useTour } from "../contexts/TourContext";
 import { Card } from "../components/common/Card";
 import { PageHeader } from "../components/common/PageHeader";
 import { PageLoading } from "../components/common/LoadingSpinner";
@@ -77,9 +76,6 @@ export function ProjectOverviewPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { startTour } = useTour();
-  const tourStarted = useRef(false);
-
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [canvases, setCanvases] = useState<Canvas[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -109,15 +105,6 @@ export function ProjectOverviewPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Auto-start guided tour on first visit
-  useEffect(() => {
-    if (!loading && project && !tourStarted.current) {
-      tourStarted.current = true;
-      const timer = setTimeout(startTour, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, project, startTour]);
 
   if (loading) {
     return <PageLoading />;
