@@ -620,7 +620,7 @@ export function KnowledgeGraphPage() {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div data-tour="page-content" className="h-full flex flex-col">
       <PageHeader
         title="Knowledge Graph"
         description="Map entities, relationships, and project knowledge."

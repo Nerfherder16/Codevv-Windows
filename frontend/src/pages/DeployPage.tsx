@@ -290,7 +290,7 @@ export function DeployPage() {
   }
 
   return (
-    <div>
+    <div data-tour="page-content">
       <PageHeader
         title="Deploy"
         description="Manage environments, generate Docker Compose, and deploy."

@@ -339,7 +339,7 @@ export function ScaffoldPage() {
   }
 
   return (
-    <div>
+    <div data-tour="page-content">
       <PageHeader
         title="Code Scaffold"
         description="Generate code from canvas components using AI."

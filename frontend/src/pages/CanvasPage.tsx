@@ -77,7 +77,7 @@ export function CanvasPage() {
   }
 
   return (
-    <div>
+    <div data-tour="page-content">
       <PageHeader
         title="Canvases"
         description="Visual architecture diagrams for your project."

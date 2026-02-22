@@ -161,24 +161,20 @@ export function ProjectOverviewPage() {
 
       {/* Quick links grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div data-tour="canvas-card">
-          <QuickLink
-            icon={<Pencil className="w-6 h-6" />}
-            label="Canvases"
-            count={canvases.length}
-            color="emerald"
-            onClick={() => navigate(`/projects/${projectId}/canvas`)}
-          />
-        </div>
-        <div data-tour="ideas-card">
-          <QuickLink
-            icon={<Lightbulb className="w-6 h-6" />}
-            label="Ideas"
-            count={ideas.length}
-            color="cyan"
-            onClick={() => navigate(`/projects/${projectId}/ideas`)}
-          />
-        </div>
+        <QuickLink
+          icon={<Pencil className="w-6 h-6" />}
+          label="Canvases"
+          count={canvases.length}
+          color="emerald"
+          onClick={() => navigate(`/projects/${projectId}/canvas`)}
+        />
+        <QuickLink
+          icon={<Lightbulb className="w-6 h-6" />}
+          label="Ideas"
+          count={ideas.length}
+          color="cyan"
+          onClick={() => navigate(`/projects/${projectId}/ideas`)}
+        />
         <QuickLink
           icon={<Users className="w-6 h-6" />}
           label="Members"

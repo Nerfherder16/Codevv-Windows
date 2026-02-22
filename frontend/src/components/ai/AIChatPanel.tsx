@@ -261,6 +261,7 @@ export function AIChatPanel() {
 
       {/* Panel */}
       <div
+        data-tour="ai-panel"
         className={`fixed right-0 top-0 h-full w-[400px] z-40 flex flex-col bg-white dark:bg-gray-950/95 dark:backdrop-blur-xl border-l border-gray-200 dark:border-white/[0.06] shadow-2xl dark:shadow-black/40 transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}

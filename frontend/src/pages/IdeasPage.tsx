@@ -151,7 +151,7 @@ export function IdeasPage() {
   }
 
   return (
-    <div>
+    <div data-tour="page-content">
       <PageHeader
         title="Ideas"
         description="Capture, discuss, and prioritize ideas for the project."

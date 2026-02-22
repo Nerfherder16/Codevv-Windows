@@ -250,11 +250,11 @@ code, pre, .font-mono {
   width: 280px;
   padding: 16px;
   border-radius: 12px;
-  background: rgba(25, 26, 40, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.02) inset;
   animation: tourFadeIn 0.2s ease-out;
   pointer-events: auto;
 }
@@ -269,7 +269,8 @@ code, pre, .font-mono {
   position: absolute;
   width: 10px;
   height: 10px;
-  background: rgba(25, 26, 40, 0.95);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transform: rotate(45deg);
 }

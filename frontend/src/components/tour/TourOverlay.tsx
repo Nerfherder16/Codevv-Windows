@@ -1,4 +1,10 @@
-import React, { useState, useLayoutEffect, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useLayoutEffect,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import { useTour } from "../../contexts/TourContext";
 
 interface Rect {
@@ -10,13 +16,25 @@ interface Rect {
 
 const PAD = 8;
 const TOOLTIP_GAP = 12;
+const TYPEWRITER_INTERVAL = 50;
 
 export function TourOverlay() {
-  const { active, stepIndex, steps, nextStep, prevStep, skipTour } = useTour();
+  const {
+    active,
+    stepIndex,
+    steps,
+    runningAction,
+    nextStep,
+    prevStep,
+    skipTour,
+  } = useTour();
   const [targetRect, setTargetRect] = useState<Rect | null>(null);
   const prevActiveRef = useRef<string | null>(null);
+  const typewriterRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [typewriterDone, setTypewriterDone] = useState(false);
   const step = steps[stepIndex];
 
+  // Measure target element position
   const measure = useCallback(() => {
     if (!step) return;
     const el = document.querySelector(step.target);
@@ -30,8 +48,9 @@ export function TourOverlay() {
     });
   }, [step]);
 
+  // Main layout effect for measuring and highlighting
   useLayoutEffect(() => {
-    if (!active || !step) return;
+    if (!active || !step || runningAction) return;
 
     // Remove previous data-tour-active
     if (prevActiveRef.current) {
@@ -56,9 +75,9 @@ export function TourOverlay() {
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
     };
-  }, [active, step, measure]);
+  }, [active, step, measure, runningAction]);
 
-  // Cleanup data-tour-active on unmount
+  // Cleanup data-tour-active on unmount or deactivation
   useLayoutEffect(() => {
     if (!active && prevActiveRef.current) {
       const prev = document.querySelector(prevActiveRef.current);
@@ -67,7 +86,118 @@ export function TourOverlay() {
     }
   }, [active]);
 
-  if (!active || !step || !targetRect) return null;
+  // Typewriter effect
+  useEffect(() => {
+    // Cleanup previous typewriter
+    if (typewriterRef.current) {
+      clearInterval(typewriterRef.current);
+      typewriterRef.current = null;
+    }
+    setTypewriterDone(false);
+
+    if (!active || !step?.typewriter || runningAction) return;
+
+    const text = step.typewriter;
+    const textarea = document.querySelector(
+      'textarea[placeholder="Ask about your project..."]',
+    ) as HTMLTextAreaElement | null;
+
+    if (!textarea) return;
+
+    // Check reduced motion preference
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (reducedMotion) {
+      // Fill instantly
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        "value",
+      )?.set;
+      if (nativeSetter) {
+        nativeSetter.call(textarea, text);
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+      setTypewriterDone(true);
+      return;
+    }
+
+    let charIdx = 0;
+    typewriterRef.current = setInterval(() => {
+      if (charIdx >= text.length) {
+        if (typewriterRef.current) clearInterval(typewriterRef.current);
+        typewriterRef.current = null;
+        setTypewriterDone(true);
+        return;
+      }
+
+      charIdx++;
+      const partial = text.slice(0, charIdx);
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        "value",
+      )?.set;
+      if (nativeSetter) {
+        nativeSetter.call(textarea, partial);
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }, TYPEWRITER_INTERVAL);
+
+    return () => {
+      if (typewriterRef.current) {
+        clearInterval(typewriterRef.current);
+        typewriterRef.current = null;
+      }
+    };
+  }, [active, step, stepIndex, runningAction]);
+
+  // Clear typewriter text when leaving a typewriter step
+  useEffect(() => {
+    return () => {
+      if (step?.typewriter) {
+        const textarea = document.querySelector(
+          'textarea[placeholder="Ask about your project..."]',
+        ) as HTMLTextAreaElement | null;
+        if (textarea) {
+          const nativeSetter = Object.getOwnPropertyDescriptor(
+            HTMLTextAreaElement.prototype,
+            "value",
+          )?.set;
+          if (nativeSetter) {
+            nativeSetter.call(textarea, "");
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+        }
+      }
+    };
+  }, [stepIndex, step?.typewriter]);
+
+  // Escape key to skip tour
+  useEffect(() => {
+    if (!active) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        skipTour();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [active, skipTour]);
+
+  if (!active || !step) return null;
+
+  // While running an action, show backdrop only (no tooltip)
+  if (runningAction) {
+    return (
+      <div
+        className="fixed inset-0 z-[60] bg-black/60 transition-opacity duration-200"
+        onClick={(e) => e.stopPropagation()}
+      />
+    );
+  }
+
+  if (!targetRect) return null;
 
   const tooltip = computeTooltipPosition(targetRect, step.position);
   const isFirst = stepIndex === 0;
@@ -99,20 +229,25 @@ export function TourOverlay() {
       >
         <div className={`tour-tooltip-arrow tour-arrow-${tooltip.arrowSide}`} />
 
-        <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">
-          {stepIndex + 1} of {steps.length}
-        </p>
-        <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-          {step.title}
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {step.description}
-        </p>
+        {/* Segmented progress bar */}
+        <div className="flex gap-1 mb-3">
+          {steps.map((_, i) => (
+            <div
+              key={i}
+              className={`h-1 flex-1 rounded-full transition-colors duration-200 ${
+                i <= stepIndex ? "bg-cyan-400" : "bg-white/10"
+              }`}
+            />
+          ))}
+        </div>
+
+        <p className="text-sm font-semibold text-white mb-1">{step.title}</p>
+        <p className="text-sm text-gray-400 mb-4">{step.description}</p>
 
         <div className="flex items-center justify-between">
           <button
             onClick={skipTour}
-            className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-200 transition-colors"
+            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
           >
             Skip tour
           </button>
@@ -143,7 +278,7 @@ function computeTooltipPosition(
   position: "top" | "bottom" | "left" | "right",
 ) {
   const TOOLTIP_W = 280;
-  const TOOLTIP_H = 160;
+  const TOOLTIP_H = 180;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 

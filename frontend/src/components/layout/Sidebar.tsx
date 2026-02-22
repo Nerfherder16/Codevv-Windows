@@ -26,7 +26,6 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   end?: boolean;
-  tourId?: string;
 }
 
 interface NavSection {
@@ -48,12 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Build",
     items: [
-      {
-        to: "scaffold",
-        icon: Code2,
-        label: "Code Scaffold",
-        tourId: "scaffold",
-      },
+      { to: "scaffold", icon: Code2, label: "Code Scaffold" },
       { to: "pipeline", icon: Activity, label: "Agent Pipeline" },
       { to: "dependencies", icon: GitBranch, label: "Dependencies" },
     ],
@@ -61,7 +55,7 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: "Platform",
     items: [
-      { to: "deploy", icon: Rocket, label: "Deploy", tourId: "deploy" },
+      { to: "deploy", icon: Rocket, label: "Deploy" },
       { to: "solana", icon: Coins, label: "Blockchain" },
       { to: "rooms", icon: Video, label: "Video Rooms" },
       { to: "workspaces", icon: Terminal, label: "Workspaces" },
@@ -130,7 +124,6 @@ export function Sidebar() {
                   key={item.to}
                   to={`${basePath}/${item.to}`}
                   end={item.end}
-                  {...(item.tourId ? { "data-tour": item.tourId } : {})}
                   className={({ isActive }) =>
                     cn(
                       "group relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200",
